@@ -6,7 +6,7 @@ import PopupView from '../view/popup-view.js';
 
 
 import { render } from '../render.js';
-import FilmsView from '../view/films-view.js';
+import FilmsPresenter from './films-presenter.js';
 
 
 const siteHeaderElement = document.querySelector('.header');
@@ -21,7 +21,9 @@ export default class MainPresenter {
     render(new TitleView(), siteHeaderElement);
     render(new MainNavigationView(), siteMainElement);
     render(new SortView(), siteMainElement);
-    render(new FilmsView(), siteMainElement);
+
+    new FilmsPresenter(siteMainElement).init();
+
     render(new StatisticsView(), siteFooterStatisticsElement);
     render(new PopupView(), document.documentElement);
   };
