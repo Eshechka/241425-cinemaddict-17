@@ -1,5 +1,4 @@
 
-import cardsModel from '../model/cards-model.js';
 import { render } from '../render.js';
 import FilmsView from '../view/films-view.js';
 import FilmsListView from '../view/films-list-view.js';
@@ -7,15 +6,17 @@ import FilmsListView from '../view/films-list-view.js';
 
 export default class FilmsPresenter {
   #filmsContainer = null;
+  #filmsModel = null;
 
-  #cards = [];
+  #films = [];
 
-  constructor(filmsContainer) {
+  constructor(filmsContainer, filmsModel) {
     this.#filmsContainer = filmsContainer;
+    this.#filmsModel = filmsModel;
   }
 
   init = () => {
-    this.#cards = [...cardsModel];
+    this.#films = [...this.#filmsModel.films];
 
     this.#renderFilms();
   };
@@ -26,9 +27,9 @@ export default class FilmsPresenter {
 
     const allFilmListsContainer = document.querySelector('.films');
 
-    render(new FilmsListView('All movies. Upcoming', true, false, this.#cards, 5, true), allFilmListsContainer);
-    render(new FilmsListView('Top rated', false, true, this.#cards), allFilmListsContainer);
-    render(new FilmsListView('Most commented', false, true, this.#cards), allFilmListsContainer);
+    render(new FilmsListView('All movies. Upcoming', true, false, this.#films, 5, true), allFilmListsContainer);
+    render(new FilmsListView('Top rated', false, true, this.#films), allFilmListsContainer);
+    render(new FilmsListView('Most commented', false, true, this.#films), allFilmListsContainer);
 
   };
 
