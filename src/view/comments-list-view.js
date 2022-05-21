@@ -7,16 +7,17 @@ const createTemplate = () => `
 
 export default class CommentListView {
   #element = null;
+  #comments = [];
 
-  constructor(comments = []) {
-    this.comments = comments;
+  constructor(comments) {
+    this.#comments = comments;
   }
 
-  getElement() {
+  get element() {
     if (!this.#element) {
       this.#element = createElement(this.template);
-      if (this.comments.length > 0) {
-        this.comments.forEach((comment) => render(new CommentView(comment), this.#element));
+      if (this.#comments.length > 0) {
+        this.#comments.forEach((comment) => render(new CommentView(comment), this.#element));
       }
     }
 

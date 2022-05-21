@@ -19,12 +19,13 @@ const createTemplate = ({ emojiSrc, text, author, day }) => `
 
 export default class CommentView {
   #element = null;
+  #comment = {};
 
-  constructor(comment = {}) {
-    this.comment = comment;
+  constructor(comment) {
+    this.#comment = comment;
   }
 
-  getElement() {
+  get element() {
     if (!this.#element) {
       this.#element = createElement(this.template);
     }
@@ -33,7 +34,7 @@ export default class CommentView {
   }
 
   get template() {
-    return createTemplate(this.comment);
+    return createTemplate(this.#comment);
   }
 
   removeElement() {
