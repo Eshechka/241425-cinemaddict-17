@@ -10,10 +10,10 @@ const createTemplate = (title, isVisuallyHidden, isExtra) => `
 export default class FilmsListView {
   #element = null;
   #title = null;
-  #isVisuallyHidden = false;
-  #isExtra = false;
+  #isVisuallyHidden = null;
+  #isExtra = null;
 
-  constructor(title, isVisuallyHidden, isExtra) {
+  constructor(title = '', isVisuallyHidden = false, isExtra = false) {
     this.#title = title;
     this.#isVisuallyHidden = isVisuallyHidden;
     this.#isExtra = isExtra;

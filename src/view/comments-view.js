@@ -40,9 +40,9 @@ const createTemplate = (commentAmount) => `
 
 export default class CommentsView {
   #element = null;
-  #commentAmount = 0;
+  #commentAmount = null;
 
-  constructor(commentAmount) {
+  constructor(commentAmount = 0) {
     this.#commentAmount = commentAmount;
   }
 

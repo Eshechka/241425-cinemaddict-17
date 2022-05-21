@@ -17,13 +17,20 @@ const siteFooterStatisticsElement = document.querySelector('.footer__statistics'
 
 
 export default class MainPresenter {
+  #filmModel = new FilmModel();
+  #commentModel = new CommentModel();
+  #films = [];
 
   init = () => {
+    this.#films = [...this.#filmModel.films];
+
     render(new TitleView(), siteHeaderElement);
     render(new MainNavigationView(), siteMainElement);
-    render(new SortView(), siteMainElement);
+    if (this.#films.length > 0) {
+      render(new SortView(), siteMainElement);
+    }
 
-    new FilmsPresenter(siteMainElement, new FilmModel(), new CommentModel()).init();
+    new FilmsPresenter(siteMainElement, this.#filmModel, this.#commentModel).init();
 
     render(new StatisticsView(), siteFooterStatisticsElement);
   };
