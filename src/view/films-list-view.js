@@ -1,6 +1,4 @@
-import { createElement, render } from '../render.js';
-import FilmCardView from './film-card-view.js';
-import ShowMoreBtnView from './show-more-btn-view.js';
+import { createElement } from '../render.js';
 
 const createTemplate = (title, isVisuallyHidden, isExtra) => `
 <section class="films-list ${isExtra ? ' films-list--extra' : ''}">
@@ -11,33 +9,26 @@ const createTemplate = (title, isVisuallyHidden, isExtra) => `
 
 export default class FilmsListView {
   #element = null;
+  #title = null;
+  #isVisuallyHidden = false;
+  #isExtra = false;
 
-  constructor(title = null, isVisuallyHidden = false, isExtra = false, cards = [], cardsCount = 1, isShowMoreBtn = false) {
-    this.title = title;
-    this.isVisuallyHidden = isVisuallyHidden;
-    this.isExtra = isExtra;
-    this.cards = cards.slice(0, cardsCount);
-    this.isShowMoreBtn = isShowMoreBtn;
+  constructor(title, isVisuallyHidden, isExtra) {
+    this.#title = title;
+    this.#isVisuallyHidden = isVisuallyHidden;
+    this.#isExtra = isExtra;
   }
 
-  getElement() {
+  get element() {
     if (!this.#element) {
       this.#element = createElement(this.template);
-      if (this.cards.length > 0) {
-        const cardsContainer = this.#element.querySelector('.films-list__container');
-        this.cards.forEach((card) => render(new FilmCardView(card), cardsContainer));
-
-        if (this.isShowMoreBtn) {
-          render(new ShowMoreBtnView(), this.#element);
-        }
-      }
     }
 
     return this.#element;
   }
 
   get template() {
-    return createTemplate(this.title, this.isVisuallyHidden, this.isExtra, this.cards);
+    return createTemplate(this.#title, this.#isVisuallyHidden, this.#isExtra);
   }
 
   removeElement() {

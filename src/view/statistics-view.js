@@ -7,7 +7,7 @@ const createTemplate = () => `
 export default class StatisticsView {
   #element = null;
 
-  getElement() {
+  get element() {
     if (!this.#element) {
       this.#element = createElement(this.template);
     }

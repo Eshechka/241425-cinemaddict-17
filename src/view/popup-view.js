@@ -80,12 +80,13 @@ const createTemplate = ({ title = '', rating = '', year = '', duration = '', gen
 
 export default class PopupView {
   #element = null;
+  #film = null;
 
   constructor(film) {
-    this.film = film;
+    this.#film = film;
   }
 
-  getElement() {
+  get element() {
     if (!this.#element) {
       this.#element = createElement(this.template);
     }
@@ -94,7 +95,7 @@ export default class PopupView {
   }
 
   get template() {
-    return createTemplate(this.film);
+    return createTemplate(this.#film);
   }
 
   removeElement() {
