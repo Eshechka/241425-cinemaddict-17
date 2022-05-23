@@ -19,9 +19,9 @@ const createTemplate = ({ emojiSrc, text, author, day }) => `
 
 export default class CommentView {
   #element = null;
-  #comment = {};
+  #comment = null;
 
-  constructor(comment) {
+  constructor(comment = {}) {
     this.#comment = comment;
   }
 

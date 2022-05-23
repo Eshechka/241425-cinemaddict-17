@@ -24,9 +24,9 @@ const createTemplate = ({ title = '', rating = '', year = '', duration = '', gen
 
 export default class FilmCardView {
   #element = null;
-  #card = {};
+  #card = null;
 
-  constructor(card) {
+  constructor(card = {}) {
     this.#card = card;
   }
 

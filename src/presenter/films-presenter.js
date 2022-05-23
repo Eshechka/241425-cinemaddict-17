@@ -8,7 +8,9 @@ import ShowMoreBtnView from '../view/show-more-btn-view.js';
 
 import CommentsView from '../view/comments-view.js';
 import CommentListView from '../view/comments-list-view.js';
+import EmptyFilmsListView from '../view/empty-films-list-view.js';
 
+const FILMS_AMOUNT = 5;
 
 export default class FilmsPresenter {
   #filmsContainer = null;
@@ -17,6 +19,8 @@ export default class FilmsPresenter {
 
   #films = [];
   #comments = [];
+
+  #renderedCardsCount = FILMS_AMOUNT;
 
   constructor(filmsContainer, filmsModel, commentsModel) {
     this.#filmsContainer = filmsContainer;
@@ -36,37 +40,44 @@ export default class FilmsPresenter {
   };
 
   #renderFilms = () => {
-    const FILMS_AMOUNT = 8;
     // рендерим общий контейнер для всех списков фильмов
     const films = new FilmsView();
 
     render(films, this.#filmsContainer);
 
-    // рендерим компоненты под разные списки фильмов
-    const filmsListAll = new FilmsListView('All movies. Upcoming', true, false);
-    const filmsListTopRated = new FilmsListView('Top rated', false, true);
-    const filmsListMostCommented = new FilmsListView('Most commented', false, true);
-
     const filmsListContainer = films.element;
 
-    render(filmsListAll, filmsListContainer);
-    render(filmsListTopRated, filmsListContainer);
-    render(filmsListMostCommented, filmsListContainer);
+    if (this.#films.length > 0) {
+      // рендерим компоненты под разные списки фильмов
+      const filmsListAll = new FilmsListView('All movies. Upcoming', true, false);
+      const filmsListTopRated = new FilmsListView('Top rated', false, true);
+      const filmsListMostCommented = new FilmsListView('Most commented', false, true);
 
-    // рендерим карточки фильмов в каждый список
-    // all
-    const allFilmsListContainer = filmsListAll.element.querySelector('.films-list__container');
-    this.#renderCards(allFilmsListContainer, this.#films.slice(0, FILMS_AMOUNT));
-    render(new ShowMoreBtnView(), filmsListAll.element);
+      render(filmsListAll, filmsListContainer);
+      render(filmsListTopRated, filmsListContainer);
+      render(filmsListMostCommented, filmsListContainer);
 
-    // top rated
-    const topRatedFilmsListContainer = filmsListTopRated.element.querySelector('.films-list__container');
-    this.#renderCards(topRatedFilmsListContainer, this.#films.slice(0, 1));
+      // рендерим карточки фильмов в каждый список
+      // all
+      const allFilmsListContainer = filmsListAll.element.querySelector('.films-list__container');
+      this.#renderCards(allFilmsListContainer, this.#films.slice(0, FILMS_AMOUNT));
 
-    // most commented
+      if (this.#films.length > this.#renderedCardsCount) {
+        // show more button
+        this.#renderShowMoreBtn(filmsListAll.element, allFilmsListContainer);
+      }
 
-    const mostCommentedFilmsListContainer = filmsListMostCommented.element.querySelector('.films-list__container');
-    this.#renderCards(mostCommentedFilmsListContainer, this.#films.slice(0, 1));
+      // top rated
+      const topRatedFilmsListContainer = filmsListTopRated.element.querySelector('.films-list__container');
+      this.#renderCards(topRatedFilmsListContainer, this.#films.slice(0, 1));
+
+      // most commented
+      const mostCommentedFilmsListContainer = filmsListMostCommented.element.querySelector('.films-list__container');
+      this.#renderCards(mostCommentedFilmsListContainer, this.#films.slice(0, 1));
+    } else {
+      const emptyFilms = new EmptyFilmsListView();
+      render(emptyFilms, filmsListContainer);
+    }
   };
 
   #renderPopup = (popupFilm) => {
@@ -104,6 +115,13 @@ export default class FilmsPresenter {
   };
 
   #renderCards = (container, cards = []) => {
+    if (cards.length === 0) {
+      const noCards = new FilmCardView();
+      render(noCards, container);
+
+      return;
+    }
+
     for (let i = 0; i < cards.length; i++) {
       const cardInfo = cards[i];
       const cardView = new FilmCardView(cardInfo);
@@ -117,5 +135,23 @@ export default class FilmsPresenter {
     }
   };
 
+  #renderShowMoreBtn = (btnContainer, cardsContainer) => {
+    const showMoreBtn = new ShowMoreBtnView();
+    render(showMoreBtn, btnContainer);
+
+    showMoreBtn.element.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.#renderCards(cardsContainer, this.#films.slice(this.#renderedCardsCount, this.#renderedCardsCount + FILMS_AMOUNT));
+
+      if (this.#films.length > this.#renderedCardsCount + FILMS_AMOUNT) {
+        this.#renderedCardsCount += FILMS_AMOUNT;
+      } else {
+        this.#renderedCardsCount = this.#films.length;
+        showMoreBtn.element.remove();
+        showMoreBtn.removeElement();
+      }
+    });
+
+  };
 
 }

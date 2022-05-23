@@ -7,9 +7,9 @@ const createTemplate = () => `
 
 export default class CommentListView {
   #element = null;
-  #comments = [];
+  #comments = null;
 
-  constructor(comments) {
+  constructor(comments = []) {
     this.#comments = comments;
   }
 

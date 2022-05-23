@@ -82,7 +82,7 @@ export default class PopupView {
   #element = null;
   #film = null;
 
-  constructor(film) {
+  constructor(film = {}) {
     this.#film = film;
   }
 
