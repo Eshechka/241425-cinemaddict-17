@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 const createTemplate = () => `
 <section class="header__profile profile">
@@ -7,22 +7,10 @@ const createTemplate = () => `
 </section>
 `;
 
-export default class TitleView {
-  #element = null;
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
-  }
+export default class TitleView extends AbstractView {
 
   get template() {
     return createTemplate();
   }
 
-  removeElement() {
-    this.#element = null;
-  }
 }

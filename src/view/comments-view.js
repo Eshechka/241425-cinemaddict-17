@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 const createTemplate = (commentAmount) => `
 <section class="film-details__comments-wrap">
@@ -38,27 +38,16 @@ const createTemplate = (commentAmount) => `
 `;
 
 
-export default class CommentsView {
-  #element = null;
+export default class CommentsView extends AbstractView {
   #commentAmount = null;
 
   constructor(commentAmount = 0) {
+    super();
     this.#commentAmount = commentAmount;
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
   }
 
   get template() {
     return createTemplate(this.#commentAmount);
   }
 
-  removeElement() {
-    this.#element = null;
-  }
 }

@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 const createTemplate = ({ title = '', rating = '', year = '', duration = '', genre = '', imgSrc = '', description = '', comments = [] }) => `
 <article class="film-card">
@@ -22,27 +22,26 @@ const createTemplate = ({ title = '', rating = '', year = '', duration = '', gen
 </article>
 `;
 
-export default class FilmCardView {
-  #element = null;
+export default class FilmCardView extends AbstractView {
   #card = null;
 
   constructor(card = {}) {
+    super();
     this.#card = card;
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
   }
 
   get template() {
     return createTemplate(this.#card);
   }
 
-  removeElement() {
-    this.#element = null;
-  }
+  setClickHandler = (callback) => {
+    this._callback.click = callback;
+
+    this.element.addEventListener('click', this.#clickHandler);
+  };
+
+  #clickHandler = (e) => {
+    e.preventDefault();
+    this._callback.click();
+  };
 }

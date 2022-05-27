@@ -1,3 +1,5 @@
+import { render } from '../framework/render.js';
+
 import TitleView from '../view/title-view.js';
 import MainNavigationView from '../view/main-navigation-view.js';
 import SortView from '../view/sort-view.js';
@@ -7,8 +9,6 @@ import FilmModel from '../model/film-model.js';
 import CommentModel from '../model/comment-model.js';
 
 import FilmsPresenter from './films-presenter.js';
-
-import { render } from '../render.js';
 
 
 const siteHeaderElement = document.querySelector('.header');
