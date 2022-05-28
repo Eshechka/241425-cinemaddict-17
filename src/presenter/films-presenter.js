@@ -61,7 +61,7 @@ export default class FilmsPresenter {
 
       // рендерим карточки фильмов в каждый список
       // all
-      const allFilmsListContainer = filmsListAll.element.querySelector('.films-list__container');
+      const allFilmsListContainer = filmsListAll.getFilmsListContainer();
       this.#renderCards(allFilmsListContainer, this.#films.slice(0, FILMS_AMOUNT));
 
       if (this.#films.length > this.#renderedCardsCount) {
@@ -70,11 +70,11 @@ export default class FilmsPresenter {
       }
 
       // top rated
-      const topRatedFilmsListContainer = filmsListTopRated.element.querySelector('.films-list__container');
+      const topRatedFilmsListContainer = filmsListTopRated.getFilmsListContainer();
       this.#renderCards(topRatedFilmsListContainer, this.#films.slice(0, 1));
 
       // most commented
-      const mostCommentedFilmsListContainer = filmsListMostCommented.element.querySelector('.films-list__container');
+      const mostCommentedFilmsListContainer = filmsListMostCommented.getFilmsListContainer();
       this.#renderCards(mostCommentedFilmsListContainer, this.#films.slice(0, 1));
     } else {
       const emptyFilms = new EmptyFilmsListView();
@@ -94,7 +94,7 @@ export default class FilmsPresenter {
       bodyElement.classList.remove('hide-overflow');
     };
 
-    popup.setClickCloseElementHandler(() => {
+    popup.setCloseElementClickHandler(() => {
       doWhenPopupClose();
     });
 
@@ -107,13 +107,11 @@ export default class FilmsPresenter {
     };
     bodyElement.addEventListener('keydown', closePopupByEsc);
 
-    const popupCommentsElement = popup.element.querySelector('.film-details__bottom-container');
-    render(new CommentsView(popupFilm.comments.length), popupCommentsElement);
+    render(new CommentsView(popupFilm.comments.length), popup.getFilmDetailsBottomContainer());
 
-    const commentListElementAfter = popup.element.querySelector('.film-details__new-comment');
-    render(new CommentListView(), commentListElementAfter, RenderPosition.BEFOREBEGIN);
+    render(new CommentListView(), popup.getFilmDetailsNewComment(), RenderPosition.BEFOREBEGIN);
 
-    const commentListElement = popup.element.querySelector('.film-details__comments-list');
+    const commentListElement = popup.getFilmDetailsCommentsList();
     popupFilm.comments.forEach((comment) => render(new CommentView(comment), commentListElement));
   };
 
@@ -131,9 +129,7 @@ export default class FilmsPresenter {
 
       render(cardView, container);
 
-      // cardView.element.addEventListener('click', (e) => {
       cardView.setClickHandler(() => {
-        // e.preventDefault();
         this.#renderPopup(cardInfo);
       });
     }

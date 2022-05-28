@@ -90,7 +90,7 @@ export default class PopupView extends AbstractView {
     return createTemplate(this.#film);
   }
 
-  setClickCloseElementHandler = (callback) => {
+  setCloseElementClickHandler = (callback) => {
     this._callback.clickCloseElement = callback;
 
     this.element.querySelector('.film-details__close-btn').addEventListener('click', this.#clickCloseElementHandler);
@@ -100,5 +100,17 @@ export default class PopupView extends AbstractView {
     e.preventDefault();
     this._callback.clickCloseElement();
   };
+
+  getFilmDetailsBottomContainer() {
+    return this.element.querySelector('.film-details__bottom-container');
+  }
+
+  getFilmDetailsNewComment() {
+    return this.element.querySelector('.film-details__new-comment');
+  }
+
+  getFilmDetailsCommentsList() {
+    return this.element.querySelector('.film-details__comments-list');
+  }
 
 }
