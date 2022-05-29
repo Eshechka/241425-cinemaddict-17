@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 const createTemplate = ({ title = '', rating = '', year = '', duration = '', genre = '', imgSrc, description = '', titleOriginal = '', director = '', writers = '', actors = '', сountry = '' }) => `
 <section class="film-details">
@@ -78,27 +78,39 @@ const createTemplate = ({ title = '', rating = '', year = '', duration = '', gen
 </section>
 `;
 
-export default class PopupView {
-  #element = null;
+export default class PopupView extends AbstractView {
   #film = null;
 
   constructor(film = {}) {
+    super();
     this.#film = film;
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-
-    return this.#element;
   }
 
   get template() {
     return createTemplate(this.#film);
   }
 
-  removeElement() {
-    this.#element = null;
+  setCloseElementClickHandler = (callback) => {
+    this._callback.clickCloseElement = callback;
+
+    this.element.querySelector('.film-details__close-btn').addEventListener('click', this.#clickCloseElementHandler);
+  };
+
+  #clickCloseElementHandler = (e) => {
+    e.preventDefault();
+    this._callback.clickCloseElement();
+  };
+
+  getFilmDetailsBottomContainer() {
+    return this.element.querySelector('.film-details__bottom-container');
   }
+
+  getFilmDetailsNewComment() {
+    return this.element.querySelector('.film-details__new-comment');
+  }
+
+  getFilmDetailsCommentsList() {
+    return this.element.querySelector('.film-details__comments-list');
+  }
+
 }
