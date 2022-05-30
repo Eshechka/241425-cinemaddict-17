@@ -9,7 +9,7 @@ import FilmModel from '../model/film-model.js';
 import CommentModel from '../model/comment-model.js';
 
 import FilmsPresenter from './films-presenter.js';
-
+import { filtersFilms } from '../helpers/filter.js';
 
 const siteHeaderElement = document.querySelector('.header');
 const siteMainElement = document.querySelector('.main');
@@ -25,7 +25,7 @@ export default class MainPresenter {
     this.#films = [...this.#filmModel.films];
 
     render(new TitleView(), siteHeaderElement);
-    render(new MainNavigationView(), siteMainElement);
+    render(new MainNavigationView(filtersFilms), siteMainElement);
     if (this.#films.length > 0) {
       render(new SortView(), siteMainElement);
     }

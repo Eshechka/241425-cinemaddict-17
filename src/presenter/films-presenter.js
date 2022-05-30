@@ -1,4 +1,4 @@
-import { render, RenderPosition } from '../framework/render.js';
+import { render, remove, RenderPosition } from '../framework/render.js';
 
 import FilmsView from '../view/films-view.js';
 import FilmsListView from '../view/films-list-view.js';
@@ -147,8 +147,7 @@ export default class FilmsPresenter {
         this.#renderedCardsCount += FILMS_AMOUNT;
       } else {
         this.#renderedCardsCount = this.#films.length;
-        showMoreBtn.element.remove();
-        showMoreBtn.removeElement();
+        remove(showMoreBtn);
       }
     });
 

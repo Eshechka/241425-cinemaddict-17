@@ -1,18 +1,36 @@
 import AbstractView from '../framework/view/abstract-view.js';
+import { capitalizeStr } from '../helpers/common.js';
 
-const createTemplate = () => `
-<nav class="main-navigation">
-    <a href="#all" class="main-navigation__item main-navigation__item--active">All movies</a>
-    <a href="#watchlist" class="main-navigation__item">Watchlist <span class="main-navigation__item-count">13</span></a>
-    <a href="#history" class="main-navigation__item">History <span class="main-navigation__item-count">4</span></a>
-    <a href="#favorites" class="main-navigation__item">Favorites <span class="main-navigation__item-count">8</span></a>
-</nav>
-`;
+const createFilterItemTemplate = (filter, count = 0) => {
+  if (filter !== 'all') {
+    return `<a href="#${filter}" class="main-navigation__item">${capitalizeStr(filter)}<span class="main-navigation__item-count">${count}</span></a>`;
+  }
+  return `<a href="#${filter}" class="main-navigation__item main-navigation__item--active">All movies</a>`;
+};
+
+const createTemplate = (filtersFilms) => {
+
+  const filterItemsTemplate = Object.entries(filtersFilms)
+    .map(([filter, count]) => createFilterItemTemplate(filter, count))
+    .join('');
+
+  return `
+    <nav class="main-navigation">
+      ${filterItemsTemplate}
+    </nav>
+  `;
+};
 
 export default class MainNavigationView extends AbstractView {
+  #filtersFilms = null;
+
+  constructor(filtersFilms = {}) {
+    super();
+    this.#filtersFilms = filtersFilms;
+  }
 
   get template() {
-    return createTemplate();
+    return createTemplate(this.#filtersFilms);
   }
 
 }
