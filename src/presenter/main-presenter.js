@@ -25,14 +25,14 @@ export default class MainPresenter {
     this.#films = [...this.#filmModel.films];
 
     render(new TitleView(), siteHeaderElement);
-    render(new MainNavigationView(filtersFilms), siteMainElement);
+    render(new MainNavigationView(filtersFilms(this.#films)), siteMainElement);
     if (this.#films.length > 0) {
       render(new SortView(), siteMainElement);
     }
 
     new FilmsPresenter(siteMainElement, this.#filmModel, this.#commentModel).init();
 
-    render(new StatisticsView(), siteFooterStatisticsElement);
+    render(new StatisticsView(this.#films.length), siteFooterStatisticsElement);
   };
 
 }

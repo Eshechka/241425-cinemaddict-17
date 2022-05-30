@@ -1,5 +1,10 @@
-import { generateFilterTypeFilms } from '../mock/filter';
-import { FILMS_AMOUNT } from '../model/film-model';
+
+const countFilter = (type = '', films = []) => {
+  if (!type) {
+    return 0;
+  }
+  return films.filter((film) => film.userDetails[type]).length;
+};
 
 const FilterType = {
   ALL: 'all',
@@ -8,16 +13,13 @@ const FilterType = {
   FAVORITES: 'favorites',
 };
 
-const filterUserFilterList = (filmsList, loginUserId) =>
-  filmsList.filter((film) => film.userId === loginUserId);
-
-const userWatchFilmsList = filterUserFilterList(generateFilterTypeFilms(), 1);
-const userHistoryFilmsList = filterUserFilterList(generateFilterTypeFilms(), 1);
-const userFavoritesFilmsList = filterUserFilterList(generateFilterTypeFilms(), 1);
-
-export const filtersFilms = {
-  [FilterType.ALL]: FILMS_AMOUNT,
-  [FilterType.WATCHLIST]: userWatchFilmsList.length,
-  [FilterType.HISTORY]: userHistoryFilmsList.length,
-  [FilterType.FAVORITES]: userFavoritesFilmsList.length,
+export const filtersFilms = (films) => {
+  const allFilmsLength = films.length;
+  return {
+    [FilterType.ALL]: allFilmsLength,
+    [FilterType.WATCHLIST]: countFilter('watchlist', films),
+    [FilterType.HISTORY]: countFilter('already_watched', films),
+    [FilterType.FAVORITES]: countFilter('favorite', films),
+  };
 };
+

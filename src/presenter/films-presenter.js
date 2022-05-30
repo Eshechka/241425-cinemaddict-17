@@ -117,9 +117,6 @@ export default class FilmsPresenter {
 
   #renderCards = (container, cards = []) => {
     if (cards.length === 0) {
-      const noCards = new FilmCardView();
-      render(noCards, container);
-
       return;
     }
 
