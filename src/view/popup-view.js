@@ -1,6 +1,6 @@
 import AbstractView from '../framework/view/abstract-view.js';
 
-const createTemplate = ({ title = '', rating = '', year = '', duration = '', genre = '', imgSrc, description = '', titleOriginal = '', director = '', writers = '', actors = '', сountry = '' }) => `
+const createTemplate = ({ title = '', rating = '', year = '', duration = '', genre = '', imgSrc, description = '', titleOriginal = '', director = '', writers = '', actors = '', сountry = '', userDetails = {} }) => `
 <section class="film-details">
   <form class="film-details__inner" action="" method="get">
     <div class="film-details__top-container">
@@ -65,9 +65,9 @@ const createTemplate = ({ title = '', rating = '', year = '', duration = '', gen
       </div>
 
       <section class="film-details__controls">
-        <button type="button" class="film-details__control-button film-details__control-button--watchlist" id="watchlist" name="watchlist">Add to watchlist</button>
-        <button type="button" class="film-details__control-button film-details__control-button--active film-details__control-button--watched" id="watched" name="watched">Already watched</button>
-        <button type="button" class="film-details__control-button film-details__control-button--favorite" id="favorite" name="favorite">Add to favorites</button>
+        <button type="button" class="film-details__control-button film-details__control-button--watchlist ${userDetails.watchlist ? 'film-details__control-button--active' : ''} " id="watchlist" name="watchlist">Add to watchlist</button>
+        <button type="button" class="film-details__control-button film-details__control-button--watched ${userDetails.already_watched ? 'film-details__control-button--active' : ''} " id="watched" name="watched">Already watched</button>
+        <button type="button" class="film-details__control-button film-details__control-button--favorite ${userDetails.favorite ? 'film-details__control-button--active' : ''} " id="favorite" name="favorite">Add to favorites</button>
       </section>
     </div>
 

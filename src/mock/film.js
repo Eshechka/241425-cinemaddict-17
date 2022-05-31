@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { getRandomInteger } from '../helpers/common.js';
 
 const generateTitle = () => {
@@ -62,23 +63,37 @@ const generateDescription = () => {
 
   return descriptions[randomIndex];
 };
+
+const generateDetails = () => {
+  const daysGap = getRandomInteger(-60, 0);
+
+  return {
+    'watchlist': Boolean(getRandomInteger(0, 1)),
+    'already_watched': Boolean(getRandomInteger(0, 1)),
+    'watching_date': dayjs().add(daysGap, 'day').toDate(),
+    'favorite': Boolean(getRandomInteger(0, 1)),
+  };
+};
+
+
 let filmId = 1;
 
 export const generateFilm = () => {
   const id = filmId++;
   return {
-    id: id,
-    title: generateTitle(),
-    description: generateDescription(),
-    rating: getRandomInteger(1, 5) + getRandomInteger(1, 5) / 10,
-    year: getRandomInteger(1950, 2022),
-    duration: generateDuration(),
-    genre: generateGenre(),
-    genreOriginal: `${generateGenre()} original`,
-    сountry: 'USA',
-    director: 'Anthony Mann',
-    writers: 'Anne Wigton, Heinz Herald, Richard Weil',
-    actors: 'Erich von Stroheim, Mary Beth Hughes, Dan Duryea',
-    imgSrc: generateImgSrc(),
+    'id': id,
+    'title': generateTitle(),
+    'description': generateDescription(),
+    'rating': getRandomInteger(1, 5) + getRandomInteger(1, 5) / 10,
+    'year': getRandomInteger(1950, 2022),
+    'duration': generateDuration(),
+    'genre': generateGenre(),
+    'genreOriginal': `${generateGenre()} original`,
+    'сountry': 'USA',
+    'director': 'Anthony Mann',
+    'writers': 'Anne Wigton, Heinz Herald, Richard Weil',
+    'actors': 'Erich von Stroheim, Mary Beth Hughes, Dan Duryea',
+    'imgSrc': generateImgSrc(),
+    'userDetails': generateDetails(),
   };
 };
