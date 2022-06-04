@@ -92,8 +92,7 @@ export default class PopupView extends AbstractView {
 
   setCloseElementClickHandler = (callback) => {
     this._callback.clickCloseElement = callback;
-
-    this.element.querySelector('.film-details__close-btn').addEventListener('click', this.#clickCloseElementHandler);
+    this.#getCloseElement().addEventListener('click', this.#clickCloseElementHandler);
   };
 
   #clickCloseElementHandler = (e) => {
@@ -101,16 +100,36 @@ export default class PopupView extends AbstractView {
     this._callback.clickCloseElement();
   };
 
-  getFilmDetailsBottomContainer() {
-    return this.element.querySelector('.film-details__bottom-container');
-  }
+  setToggleControlHandler = (callback) => {
+    this._callback.toggleControl = callback;
+    this.#getWatchlistElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'watchlist'));
+    this.#getWatchedElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'already_watched'));
+    this.#getFavoriteElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'favorite'));
+  };
 
-  getFilmDetailsNewComment() {
-    return this.element.querySelector('.film-details__new-comment');
-  }
+  #clickToggleControlHandler = (e, type) => {
+    e.preventDefault();
+    this._callback.toggleControl(e, type);
+  };
 
-  getFilmDetailsCommentsList() {
-    return this.element.querySelector('.film-details__comments-list');
-  }
+  addHideOverflowContainer = () => {
+    this.getContainerElement.classList.add('hide-overflow');
+  };
+
+  removeHideOverflowContainer = () => {
+    this.getContainerElement.classList.remove('hide-overflow');
+  };
+
+  getFilmDetailsBottomContainerElement = () => this.element.querySelector('.film-details__bottom-container');
+
+  getFilmDetailsNewCommentElement = () => this.element.querySelector('.film-details__new-comment');
+
+  getFilmDetailsCommentsListElement = () => this.element.querySelector('.film-details__comments-list');
+
+  #getCloseElement = () => this.element.querySelector('.film-details__close-btn');
+
+  #getWatchlistElement = () => this.element.querySelector('.film-details__control-button--watchlist');
+  #getWatchedElement = () => this.element.querySelector('.film-details__control-button--watched');
+  #getFavoriteElement = () => this.element.querySelector('.film-details__control-button--favorite');
 
 }
