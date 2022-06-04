@@ -36,12 +36,31 @@ export default class FilmCardView extends AbstractView {
 
   setClickHandler = (callback) => {
     this._callback.click = callback;
-
     this.element.addEventListener('click', this.#clickHandler);
+  };
+
+  setToggleControlHandler = (callback) => {
+    this._callback.toggleControl = callback;
+    this.#getWatchlistElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'watchlist'));
+    this.#getWatchedElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'already_watched'));
+    this.#getFavoriteElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'favorite'));
   };
 
   #clickHandler = (e) => {
     e.preventDefault();
-    this._callback.click();
+    if (!e.target.classList.contains(this.#getControlsClass())) {
+      this._callback.click();
+    }
   };
+
+  #clickToggleControlHandler = (e, type) => {
+    e.preventDefault();
+    this._callback.toggleControl(e, type);
+  };
+
+  #getWatchlistElement = () => this.element.querySelector('.film-card__controls-item--add-to-watchlist');
+  #getWatchedElement = () => this.element.querySelector('.film-card__controls-item--mark-as-watched');
+  #getFavoriteElement = () => this.element.querySelector('.film-card__controls-item--favorite');
+
+  #getControlsClass = () => 'film-card__controls-item';
 }
