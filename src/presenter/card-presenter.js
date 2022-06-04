@@ -12,14 +12,14 @@ export default class CardPresenter {
   #cardComponent = null;
   #popupComponent = null;
 
-  #clickWatchlist = null;
+  #clickControlFilm = null;
   #hidePopup = null;
 
   #cardInfo = null;
 
-  constructor(cardsContainer, clickWatchlist, hidePopup) {
+  constructor(cardsContainer, clickControlFilm, hidePopup) {
     this.#cardsContainer = cardsContainer;
-    this.#clickWatchlist = clickWatchlist;
+    this.#clickControlFilm = clickControlFilm;
     this.#hidePopup = hidePopup;
   }
 
@@ -62,12 +62,17 @@ export default class CardPresenter {
       }
 
       // вызываем метод из film-presenter (с обновленными данными)
-      this.#clickWatchlist({ ...this.#cardInfo, userDetails: newUserDetails });
+      this.#clickControlFilm({ ...this.#cardInfo, userDetails: newUserDetails });
     });
   };
 
   #renderCard = () => {
     render(this.#cardComponent, this.#cardsContainer);
+  };
+
+  destroyCard = () => {
+    remove(this.#cardComponent);
+    this.#cardComponent = null;
   };
 
   #renderPopup = (popupFilm) => {
@@ -108,7 +113,7 @@ export default class CardPresenter {
 
       // вызываем метод из film-presenter (с обновленными данными)
       const newCardInfo = Object.assign({}, { ...this.#cardInfo, userDetails: newUserDetails });
-      this.#clickWatchlist(newCardInfo);
+      this.#clickControlFilm(newCardInfo);
       this.#renderPopup(newCardInfo);
     });
 

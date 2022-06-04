@@ -2,7 +2,6 @@ import { render, replace } from '../framework/render.js';
 
 import TitleView from '../view/title-view.js';
 import MainNavigationView from '../view/main-navigation-view.js';
-import SortView from '../view/sort-view.js';
 import StatisticsView from '../view/statistics-view.js';
 
 import FilmModel from '../model/film-model.js';
@@ -35,10 +34,6 @@ export default class MainPresenter {
 
     this.#mainNavigationElement = new MainNavigationView(filtersFilms(this.#films));
     render(this.#mainNavigationElement, siteMainElement);
-
-    if (this.#films.length > 0) {
-      render(new SortView(), siteMainElement);
-    }
 
     new FilmsPresenter(siteMainElement, this.#films, this.#rerenderMainNavigation).init();
 
