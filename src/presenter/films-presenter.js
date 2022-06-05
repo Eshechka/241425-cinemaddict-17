@@ -1,5 +1,5 @@
-import { render, remove } from '../framework/render.js';
-import { updateItem } from '../helpers/common.js';
+import { render, remove, RenderPosition } from '../framework/render.js';
+import { updateItem, sortRating, sortDate } from '../helpers/common.js';
 
 import FilmsView from '../view/films-view.js';
 import FilmsListView from '../view/films-list-view.js';
@@ -8,17 +8,25 @@ import ShowMoreBtnView from '../view/show-more-btn-view.js';
 
 import EmptyFilmsListView from '../view/empty-films-list-view.js';
 import CardPresenter from './card-presenter.js';
+import SortView from '../view/sort-view.js';
 
 const FILMS_AMOUNT = 5;
 
 export default class FilmsPresenter {
-  #filmsContainer = null;
   #films = [];
+  #defaultSortedFilms = [];
+
+  #filmsContainer = null;
+
   #filmsComponent = null;
-  #emptyFilms = null;
-  #allFilms = null;
-  #topRatedFilms = null;
-  #mostCommentedFilms = null;
+  #emptyFilmsComponent = null;
+  #allFilmsComponent = null;
+  #topRatedFilmsComponent = null;
+  #mostCommentedFilmsComponent = null;
+  #showMoreAllFilmsBtnComponent = null;
+  #sortComponent = null;
+
+  #sortingMode = 'default';
 
   #openedPopupCardPresenter = null;
 
@@ -38,12 +46,20 @@ export default class FilmsPresenter {
 
   init = () => {
     this.#films = [...this.#films];
+    this.#defaultSortedFilms = [...this.#films];
 
     this.#filmsComponent = new FilmsView();
-    this.#emptyFilms = new EmptyFilmsListView();
-    this.#allFilms = new FilmsListView('All movies. Upcoming', true, false);
-    this.#topRatedFilms = new FilmsListView('Top rated', false, true);
-    this.#mostCommentedFilms = new FilmsListView('Most commented', false, true);
+    this.#emptyFilmsComponent = new EmptyFilmsListView();
+    this.#allFilmsComponent = new FilmsListView('All movies. Upcoming', true, false);
+    this.#topRatedFilmsComponent = new FilmsListView('Top rated', false, true);
+    this.#mostCommentedFilmsComponent = new FilmsListView('Most commented', false, true);
+    this.#showMoreAllFilmsBtnComponent = new ShowMoreBtnView();
+
+    this.#sortComponent = new SortView();
+
+    if (this.#films.length > 0) {
+      this.#renderSorting();
+    }
 
     // рендерим общий контейнер для всех списков фильмов
     render(this.#filmsComponent, this.#filmsContainer);
@@ -51,6 +67,11 @@ export default class FilmsPresenter {
     this.#renderFilms();
   };
 
+  #renderSorting = () => {
+    render(this.#sortComponent, this.#filmsContainer);
+    // добавим обработчик клика на компонент
+    this.#sortComponent.setClickSortingHandler(this.#clickSorting);
+  };
 
   #renderFilms = () => {
     if (this.#films.length === 0) {
@@ -59,20 +80,21 @@ export default class FilmsPresenter {
     }
 
     // рендерим компоненты под разные списки фильмов
-    this.#renderFilmsComponent(this.#allFilms, this.#cardPresenterAll, this.#films, this.#renderedAllCardsCount);
-    this.#renderShowMoreBtn(this.#allFilms.element, this.#allFilms.getFilmsListContainer(), this.#films, this.#cardPresenterAll, this.#renderedAllCardsCount);
+    this.#renderFilmsComponent(this.#allFilmsComponent, this.#cardPresenterAll, this.#films, this.#renderedAllCardsCount);
+    this.#renderShowMoreBtn(this.#showMoreAllFilmsBtnComponent, this.#allFilmsComponent.element, this.#allFilmsComponent.getFilmsListContainer(), this.#films, this.#cardPresenterAll, this.#renderedAllCardsCount);
 
-    this.#renderFilmsComponent(this.#topRatedFilms, this.#cardPresenterTopRated, this.#films, 2);
+    this.#renderFilmsComponent(this.#topRatedFilmsComponent, this.#cardPresenterTopRated, this.#films, 2);
 
-    this.#renderFilmsComponent(this.#mostCommentedFilms, this.#cardPresenterMostCommented, [this.#films[1]]);
+    this.#renderFilmsComponent(this.#mostCommentedFilmsComponent, this.#cardPresenterMostCommented, [this.#films[1]]);
   };
 
   #renderEmptyFilmsComponent = () => {
-    render(this.#emptyFilms, this.#filmsComponent.element);
+    render(this.#emptyFilmsComponent, this.#filmsComponent.element);
   };
 
-  #renderFilmsComponent = (filmsListComponent, cardPresenterMap, films, amountFirstRender = 1) => {
-    render(filmsListComponent, this.#filmsComponent.element);
+  // рендерит компоненты списка фильмов
+  #renderFilmsComponent = (filmsListComponent, cardPresenterMap, films, amountFirstRender = 1, place = RenderPosition.BEFOREEND) => {
+    render(filmsListComponent, this.#filmsComponent.element, place);
     // рендерим карточки фильмов
     this.#renderCards(filmsListComponent.getFilmsListContainer(), films.slice(0, amountFirstRender), cardPresenterMap);
   };
@@ -91,7 +113,7 @@ export default class FilmsPresenter {
     }
 
     for (let i = 0; i < cards.length; i++) {
-      const cardPresenter = new CardPresenter(container, this.#clickWatchlist, this.#hidePopup);
+      const cardPresenter = new CardPresenter(container, this.#clickControlFilm, this.#hidePopup);
 
       // добавляем отрисованные cardPresenter-ы в cardPresenterMap
       cardPresenterMap.set(cards[i].id, cardPresenter);
@@ -100,12 +122,12 @@ export default class FilmsPresenter {
     }
   };
 
-  #renderShowMoreBtn = (btnContainer, cardsContainer, films, cardPresenterMap, amountRenderPerStep = 1) => {
+  #renderShowMoreBtn = (showMoreBtn, btnContainer, cardsContainer, films, cardPresenterMap, amountRenderPerStep = 1) => {
     if (films.length <= amountRenderPerStep) {
       return;
     }
 
-    const showMoreBtn = new ShowMoreBtnView();
+    // const showMoreBtn = new ShowMoreBtnView();
     render(showMoreBtn, btnContainer);
 
     let renderedCardsCount = amountRenderPerStep;
@@ -124,7 +146,49 @@ export default class FilmsPresenter {
 
   };
 
-  #clickWatchlist = (updatedCard) => {
+  // колбек, передаваемый в #sortComponent, сортирует и перерисовывает фильмы по клику на контрол сортировки
+  #clickSorting = (type) => {
+
+    if (this.#sortingMode === type) {
+      return;
+    }
+    // запоминаем тип сортировки
+    this.#sortingMode = type;
+
+    // подсвечиваем нажатый фильтр
+    this.#sortComponent.setActiveSortingElement(type);
+
+
+    this.#sortFilms();
+
+    // удаляем все презентеры карточек фильмов и очищаем мап
+    this.#clearAllFilmList();
+
+    this.#renderFilmsComponent(this.#allFilmsComponent, this.#cardPresenterAll, this.#films, this.#renderedAllCardsCount, RenderPosition.AFTERBEGIN);
+    this.#renderShowMoreBtn(this.#showMoreAllFilmsBtnComponent, this.#allFilmsComponent.element, this.#allFilmsComponent.getFilmsListContainer(), this.#films, this.#cardPresenterAll, this.#renderedAllCardsCount);
+  };
+
+  #sortFilms = () => {
+    switch (this.#sortingMode) {
+      case 'date':
+        this.#films.sort(sortDate);
+        break;
+      case 'rating':
+        this.#films.sort(sortRating);
+        break;
+      default:
+        this.#films = [...this.#defaultSortedFilms];
+        break;
+    }
+  };
+
+  #clearAllFilmList = () => {
+    this.#cardPresenterAll.forEach((presenter) => presenter.destroyCard());
+    this.#cardPresenterAll.clear();
+    remove(this.#showMoreAllFilmsBtnComponent);
+  };
+
+  #clickControlFilm = (updatedCard) => {
     // кликнули на контрол, пришли данные updatedCard из card-presenter
     this.#films = updateItem(this.#films, updatedCard);
 
