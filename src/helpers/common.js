@@ -44,18 +44,10 @@ const getWeightForNullDate = (dateA, dateB) => {
   return null;
 };
 
-export const sortWatchingRatingUp = (filmA, filmB) => filmA.rating - filmB.rating;
+export const sortRating = (filmA, filmB) => filmB.rating - filmA.rating;
 
-export const sortWatchingRatingDown = (filmA, filmB) => filmB.rating - filmA.rating;
+export const sortDate = (filmA, filmB) => {
+  const weight = getWeightForNullDate(filmB.year, filmA.year);
 
-export const sortWatchingDateUp = (filmA, filmB) => {
-  const weight = getWeightForNullDate(filmA.userDetails.watching_date, filmB.userDetails.watching_date);
-
-  return weight ?? dayjs(filmA.userDetails.watching_date).diff(dayjs(filmB.userDetails.watching_date));
-};
-
-export const sortWatchingDateDown = (filmA, filmB) => {
-  const weight = getWeightForNullDate(filmA.userDetails.watching_date, filmB.userDetails.watching_date);
-
-  return weight ?? dayjs(filmB.userDetails.watching_date).diff(dayjs(filmA.userDetails.watching_date));
+  return weight ?? dayjs(filmB.year).diff(dayjs(filmA.year));
 };

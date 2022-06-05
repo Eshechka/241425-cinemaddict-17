@@ -1,5 +1,5 @@
 import { render, remove, RenderPosition } from '../framework/render.js';
-import { updateItem, sortWatchingDateDown, sortWatchingDateUp, sortWatchingRatingUp, sortWatchingRatingDown } from '../helpers/common.js';
+import { updateItem, sortRating, sortDate } from '../helpers/common.js';
 
 import FilmsView from '../view/films-view.js';
 import FilmsListView from '../view/films-list-view.js';
@@ -26,7 +26,7 @@ export default class FilmsPresenter {
   #showMoreAllFilmsBtnComponent = null;
   #sortComponent = null;
 
-  #sortingMode = { type: 'default', mode: '' };
+  #sortingMode = 'default';
 
   #openedPopupCardPresenter = null;
 
@@ -149,27 +149,15 @@ export default class FilmsPresenter {
   // колбек, передаваемый в #sortComponent, сортирует и перерисовывает фильмы по клику на контрол сортировки
   #clickSorting = (type) => {
 
-    if (this.#sortingMode.type === type) {
-      if (type === 'default') {
-        // тип default, не менялся
-        return;
-      } else {
-        // тип поменялся
-        if (this.#sortingMode.mode === '') {
-          this.#sortingMode.mode = 'up';
-        } else {
-          this.#sortingMode.mode = this.#sortingMode.mode === 'up' ? 'down' : 'up';
-        }
-      }
-    } else {
-      // запоминаем тип сортировки
-      this.#sortingMode.type = type;
-      // устанавливаем режим типа сортировки (пустой или up)
-      this.#sortingMode.mode = (type === 'default') ? '' : 'up';
-
-      // подсвечиваем нажатый фильтр
-      this.#sortComponent.setActiveSortingElement(type);
+    if (this.#sortingMode === type) {
+      return;
     }
+    // запоминаем тип сортировки
+    this.#sortingMode = type;
+
+    // подсвечиваем нажатый фильтр
+    this.#sortComponent.setActiveSortingElement(type);
+
 
     this.#sortFilms();
 
@@ -181,20 +169,12 @@ export default class FilmsPresenter {
   };
 
   #sortFilms = () => {
-    switch (this.#sortingMode.type) {
+    switch (this.#sortingMode) {
       case 'date':
-        if (this.#sortingMode.mode === 'up') {
-          this.#films.sort(sortWatchingDateUp);
-        } else {
-          this.#films.sort(sortWatchingDateDown);
-        }
+        this.#films.sort(sortDate);
         break;
       case 'rating':
-        if (this.#sortingMode.mode === 'up') {
-          this.#films.sort(sortWatchingRatingUp);
-        } else {
-          this.#films.sort(sortWatchingRatingDown);
-        }
+        this.#films.sort(sortRating);
         break;
       default:
         this.#films = [...this.#defaultSortedFilms];
