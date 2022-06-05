@@ -1,10 +1,7 @@
-import { render, replace, RenderPosition, remove } from '../framework/render.js';
+import { render, replace, remove } from '../framework/render.js';
 
 import FilmCardView from '../view/film-card-view.js';
 import PopupView from '../view/popup-view.js';
-import CommentsView from '../view/comments-view.js';
-import CommentListView from '../view/comments-list-view.js';
-import CommentView from '../view/comment-view.js';
 
 export default class CardPresenter {
   #cardsContainer = null;
@@ -122,19 +119,13 @@ export default class CardPresenter {
     });
 
     const closePopupByEsc = (e) => {
-      e.preventDefault();
       if (e.key === 'Escape') {
+        e.preventDefault();
         this.destroyPopup();
         this.#popupContainer.removeEventListener('keydown', closePopupByEsc);
       }
     };
     this.#popupContainer.addEventListener('keydown', closePopupByEsc);
-
-    render(new CommentsView(popupFilm.comments.length), this.#popupComponent.getFilmDetailsBottomContainerElement());
-    render(new CommentListView(), this.#popupComponent.getFilmDetailsNewCommentElement(), RenderPosition.BEFOREBEGIN);
-
-    const commentListElement = this.#popupComponent.getFilmDetailsCommentsListElement();
-    popupFilm.comments.forEach((comment) => render(new CommentView(comment), commentListElement));
   };
 
   destroyPopup = () => {
