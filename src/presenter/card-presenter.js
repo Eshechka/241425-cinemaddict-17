@@ -73,22 +73,13 @@ export default class CardPresenter {
   };
 
   #renderPopup = (popupFilm) => {
-
-    const prevPopupComponent = this.#popupComponent;
     this.#popupComponent = new PopupView(popupFilm);
 
     this.#popupContainer = document.body;
 
-    if (!prevPopupComponent) {
-      // нет prevPopupComponent, это первый рендер
+    render(this.#popupComponent, this.#popupContainer);
+    this.#popupContainer.classList.add('hide-overflow');
 
-      render(this.#popupComponent, this.#popupContainer);
-      this.#popupContainer.classList.add('hide-overflow');
-
-    } else {
-      // есть prevPopupComponent, заменяем разметку
-      replace(this.#popupComponent, prevPopupComponent);
-    }
 
     this.#popupComponent.setToggleControlHandler((_, type) => {
       // обновляем данные
@@ -111,7 +102,6 @@ export default class CardPresenter {
       // вызываем метод из film-presenter (с обновленными данными)
       const newCardInfo = Object.assign({}, { ...this.#cardInfo, userDetails: newUserDetails });
       this.#clickControlFilm(newCardInfo);
-      this.#renderPopup(newCardInfo);
     });
 
     this.#popupComponent.setCloseElementClickHandler(() => {

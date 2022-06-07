@@ -21,10 +21,20 @@ const generateGenre = () => {
     'Drama',
     'Cartoon',
     'Musical',
+    'Melodrama',
   ];
-  const randomIndex = getRandomInteger(0, genres.length - 1);
+  const randomIndexFrom = getRandomInteger(0, genres.length - 1);
+  const randomIndexTo = getRandomInteger(3, genres.length - 1);
 
-  return genres[randomIndex];
+  const genresList = [];
+
+  if (randomIndexFrom <= randomIndexTo) {
+    for (let i = randomIndexFrom; i < randomIndexTo; i++) {
+      genresList.push(genres[i]);
+    }
+  }
+
+  return genresList;
 };
 
 const generateDuration = () => {

@@ -72,7 +72,7 @@ const createTemplateNewComment = (commentAmount, clickedEmoji, showedEmojiImgSrc
 </section>
 `;
 
-const createTemplate = ({ title = '', rating = '', year = '', duration = '', genre = '', imgSrc, description = '', titleOriginal = '', director = '', writers = '', actors = '', сountry = '', userDetails = {}, comments = [], clickedEmoji = null, showedEmojiImgSrc = null, comment = '' }) => `
+const createTemplate = ({ title = '', rating = '', year = '', duration = '', genre = [], imgSrc, description = '', titleOriginal = '', director = '', writers = '', actors = '', сountry = '', userDetails = {}, comments = [], clickedEmoji = null, showedEmojiImgSrc = null, comment = '' }) => `
 <section class="film-details">
   <form class="film-details__inner" action="" method="get">
     <div class="film-details__top-container">
@@ -124,11 +124,12 @@ const createTemplate = ({ title = '', rating = '', year = '', duration = '', gen
               <td class="film-details__cell">${сountry}</td>
             </tr>
             <tr class="film-details__row">
-              <td class="film-details__term">Genres</td>
+              <td class="film-details__term">${genre.length > 1 ? 'Genres' : 'Genre'}</td>
               <td class="film-details__cell">
-                <span class="film-details__genre">${genre}</span>
-                <span class="film-details__genre">${genre}</span>
-                <span class="film-details__genre">${genre}</span></td>
+              ${genre.map((genr) => `
+                <span class="film-details__genre">${genr}</span>
+              `).join('')}
+              </td>
             </tr>
           </table>
 
@@ -211,7 +212,6 @@ export default class PopupView extends AbstractStatefulView {
     this.#setInnerHandlers();
     this.setCloseElementClickHandler(this._callback.clickCloseElement);
     this.setToggleControlHandler(this._callback.toggleControl);
-    this.setToggleControlHandler(this._callback.toggleControl);
   };
 
   setCloseElementClickHandler = (callback) => {
@@ -234,6 +234,14 @@ export default class PopupView extends AbstractStatefulView {
   #clickToggleControlHandler = (e, type) => {
     e.preventDefault();
     this._callback.toggleControl(e, type);
+
+    this.#setScrollPage(this._state.scrollPos);
+
+    const userDetailsState = { ...this._state.userDetails };
+    userDetailsState[type] = !userDetailsState[type];
+    this.updateElement({
+      userDetails: userDetailsState,
+    });
   };
 
   #clickEmojiHandler = (e) => {
@@ -258,7 +266,6 @@ export default class PopupView extends AbstractStatefulView {
   };
 
   #inputCommentHandler = (e) => {
-
     this.updateElement({
       comment: e.target.value,
       isCommentFocused: true,
