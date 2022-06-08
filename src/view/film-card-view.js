@@ -1,6 +1,6 @@
 import AbstractView from '../framework/view/abstract-view.js';
 
-const createTemplate = ({ title = '', rating = '', year = '', duration = '', genre = '', imgSrc = '', description = '', comments = [], userDetails = {} }) => `
+const createTemplate = ({ title = '', rating = '', year = '', duration = '', genre = [], imgSrc = '', description = '', comments = [], userDetails = {} }) => `
 <article class="film-card">
   <a class="film-card__link">
     <h3 class="film-card__title">${title}</h3>
@@ -8,7 +8,7 @@ const createTemplate = ({ title = '', rating = '', year = '', duration = '', gen
     <p class="film-card__info">
       <span class="film-card__year">${year}</span>
       <span class="film-card__duration">${duration}</span>
-      <span class="film-card__genre">${genre}</span>
+      <span class="film-card__genre">${genre.map((genr) => genr).join(' ')}</span>
     </p>
     <img src="${imgSrc}" alt="" class="film-card__poster">
     <p class="film-card__description">${description}</p>
