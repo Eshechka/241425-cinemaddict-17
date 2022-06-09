@@ -1,7 +1,7 @@
-// import dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 
-const createTemplateCommentList = ({ emojiSrc, text, author, day }) => `
+const createTemplateCommentList = ({ emojiSrc, text, author, date }) => `
   <li class="film-details__comment">
     <span class="film-details__comment-emoji">
       <img src="${emojiSrc}"  width="55" height="55" alt="emoji-smile">
@@ -10,7 +10,7 @@ const createTemplateCommentList = ({ emojiSrc, text, author, day }) => `
       <p class="film-details__comment-text">${text}</p>
       <p class="film-details__comment-info">
         <span class="film-details__comment-author">${author}</span>
-        <span class="film-details__comment-day">${day}</span>
+        <span class="film-details__comment-day">${dayjs(date).format('YYYY/MM/DD hh:mm')}</span>
         <button class="film-details__comment-delete">Delete</button>
       </p>
     </div>
@@ -72,7 +72,7 @@ const createTemplateNewComment = (commentAmount, clickedEmoji, showedEmojiImgSrc
 </section>
 `;
 
-const createTemplate = ({ title = '', rating = '', year = '', duration = '', genre = [], imgSrc, description = '', titleOriginal = '', director = '', writers = '', actors = '', сountry = '', userDetails = {}, comments = [], clickedEmoji = null, showedEmojiImgSrc = null, comment = '' }) => `
+const createTemplate = ({ title = '', rating = '', duration = '', genre = [], imgSrc, description = '', titleOriginal = '', director = '', writers = '', actors = [], release = {}, userDetails = {}, comments = [], clickedEmoji = null, showedEmojiImgSrc = null, comment = '' }) => `
 <section class="film-details">
   <form class="film-details__inner" action="" method="get">
     <div class="film-details__top-container">
@@ -109,11 +109,13 @@ const createTemplate = ({ title = '', rating = '', year = '', duration = '', gen
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Actors</td>
-              <td class="film-details__cell">${actors}</td>
+              ${actors.map((actor) => `
+                <td class="film-details__cell">${actor}</td>
+              `).join('')}
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Release Date</td>
-              <td class="film-details__cell">${year}</td>
+              <td class="film-details__cell">${dayjs(release.date).format('D MMMM YYYY')}</td>
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Runtime</td>
@@ -121,7 +123,7 @@ const createTemplate = ({ title = '', rating = '', year = '', duration = '', gen
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Country</td>
-              <td class="film-details__cell">${сountry}</td>
+              <td class="film-details__cell">${release.сountry}</td>
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">${genre.length > 1 ? 'Genres' : 'Genre'}</td>
