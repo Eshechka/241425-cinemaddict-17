@@ -119,11 +119,11 @@ const createTemplate = ({ title = '', rating = '', duration = '', genre = [], im
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Runtime</td>
-              <td class="film-details__cell">${duration}</td>
+              <td class="film-details__cell">${dayjs().set('hour', Math.floor(duration / 60)).set('minute', duration % 60).format('h[h] mm[m]')}</td>
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Country</td>
-              <td class="film-details__cell">${release.сountry}</td>
+              <td class="film-details__cell">${release.release_country ? release.release_country : ''}</td>
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">${genre.length > 1 ? 'Genres' : 'Genre'}</td>
