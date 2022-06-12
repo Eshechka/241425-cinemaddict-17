@@ -9,14 +9,14 @@ export default class CardPresenter {
   #cardComponent = null;
   #popupComponent = null;
 
-  #clickControlFilm = null;
+  #handleViewAction = null;
   #hidePopup = null;
 
   #cardInfo = null;
 
-  constructor(cardsContainer, clickControlFilm, hidePopup) {
+  constructor(cardsContainer, handleViewAction, hidePopup) {
     this.#cardsContainer = cardsContainer;
-    this.#clickControlFilm = clickControlFilm;
+    this.#handleViewAction = handleViewAction;
     this.#hidePopup = hidePopup;
   }
 
@@ -58,8 +58,8 @@ export default class CardPresenter {
           break;
       }
 
-      // вызываем метод из film-presenter (с обновленными данными)
-      this.#clickControlFilm({ ...this.#cardInfo, userDetails: newUserDetails });
+      // вызываем метод из презентера films, который вызовет метод модели filmsModel (с обновленными данными)
+      this.#handleViewAction('UPDATE_FILM', { ...this.#cardInfo, userDetails: newUserDetails });
     });
   };
 
@@ -101,7 +101,7 @@ export default class CardPresenter {
 
       // вызываем метод из film-presenter (с обновленными данными)
       const newCardInfo = Object.assign({}, { ...this.#cardInfo, userDetails: newUserDetails });
-      this.#clickControlFilm(newCardInfo);
+      this.#handleViewAction('UPDATE_FILM', newCardInfo);
     });
 
     this.#popupComponent.setCloseElementClickHandler(() => {

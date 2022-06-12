@@ -86,7 +86,6 @@ const generateRelease = () => {
   return release;
 };
 
-
 const generateDetails = () => {
   const daysGap = getRandomInteger(-60, 0);
 
@@ -108,7 +107,6 @@ export const generateFilm = () => {
     'title': generateTitle(),
     'description': generateDescription(),
     'rating': getRandomInteger(1, 5) + getRandomInteger(1, 5) / 10,
-    'year': getRandomInteger(1950, 2022),
     'duration': generateDuration(),
     'genre': generateGenre(),
     'genreOriginal': `${generateGenre()} original`,

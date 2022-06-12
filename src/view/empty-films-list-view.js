@@ -18,4 +18,10 @@ export default class EmptyFilmsListView extends AbstractView {
     return createTemplate(this.#title);
   }
 
+  setTitle = (title = '') => {
+    this.#getTitleElement().textContent = title;
+  };
+
+
+  #getTitleElement = () => this.element.querySelector('.films-list__title');
 }
