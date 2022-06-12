@@ -24,18 +24,7 @@ const authors = [
 const generateDate = () => {
 
   const daysGap = getRandomInteger(-60, 0);
-  let date = dayjs().add(daysGap, 'day').toDate();
-  switch (true) {
-    case date === 0:
-      date = 'Today';
-      break;
-    case date > 0 && date < 3:
-      date = `${date} days ago`;
-      break;
-    default:
-      date = dayjs(date).format('YYYY/MM/DD H:mm');
-      break;
-  }
+  const date = dayjs().add(daysGap, 'day').toDate();
 
   return date;
 };
@@ -48,11 +37,11 @@ export const generateComments = (filmsAmount = 10) => {
   for (let i = 1; i <= commentsAmount; i++) {
     comments.push({
       id: i,
-      filmId: getRandomInteger(1, filmsAmount),
-      text: commentTexts[getRandomInteger(0, commentTexts.length - 1)],
-      emojiSrc: emojiSrcs[getRandomInteger(0, emojiSrcs.length - 1)],
       author: authors[getRandomInteger(0, authors.length - 1)],
-      day: generateDate(),
+      text: commentTexts[getRandomInteger(0, commentTexts.length - 1)],
+      filmId: getRandomInteger(1, filmsAmount),
+      date: generateDate(),
+      emojiSrc: emojiSrcs[getRandomInteger(0, emojiSrcs.length - 1)],
     });
   }
 

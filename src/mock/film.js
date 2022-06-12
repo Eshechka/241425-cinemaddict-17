@@ -37,15 +37,7 @@ const generateGenre = () => {
   return genresList;
 };
 
-const generateDuration = () => {
-  const randomHour = getRandomInteger(0, 5);
-  const randomMin = getRandomInteger(0, 59);
-
-  const hour = randomHour > 0 ? `${randomHour}h ` : '';
-  const min = randomMin > 0 ? `${randomMin}min` : '1min';
-
-  return `${hour}${min}`;
-};
+const generateDuration = () => getRandomInteger(5, 180);
 
 const generateImgSrc = () => {
   const srcs = [
@@ -74,6 +66,27 @@ const generateDescription = () => {
   return descriptions[randomIndex];
 };
 
+const generateRelease = () => {
+  const countries = ['Finland', 'Russia', 'England', 'USA'];
+
+
+  const release = {
+    'date': dayjs().set('year', getRandomInteger(1950, 2022))
+      .set('month', getRandomInteger(0, 11))
+      .set('day', getRandomInteger(1, 30))
+      .set('hour', getRandomInteger(0, 23))
+      .set('minute', getRandomInteger(0, 59))
+      .set('second', getRandomInteger(0, 59))
+      .set('millisecond', getRandomInteger(0, 999))
+      .format('YYYY-MM-DDTHH:mm:ss.ms[Z]').toString()
+    ,
+    'release_country': countries[getRandomInteger(0, countries.length - 1)],
+  };
+
+  return release;
+};
+
+
 const generateDetails = () => {
   const daysGap = getRandomInteger(-60, 0);
 
@@ -99,10 +112,10 @@ export const generateFilm = () => {
     'duration': generateDuration(),
     'genre': generateGenre(),
     'genreOriginal': `${generateGenre()} original`,
-    'сountry': 'USA',
+    'release': generateRelease(),
     'director': 'Anthony Mann',
     'writers': 'Anne Wigton, Heinz Herald, Richard Weil',
-    'actors': 'Erich von Stroheim, Mary Beth Hughes, Dan Duryea',
+    'actors': ['Erich von Stroheim, Mary Beth Hughes, Dan Duryea'],
     'imgSrc': generateImgSrc(),
     'userDetails': generateDetails(),
   };

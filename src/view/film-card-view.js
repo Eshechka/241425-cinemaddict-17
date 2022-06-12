@@ -1,13 +1,16 @@
+import dayjs from 'dayjs';
+
 import AbstractView from '../framework/view/abstract-view.js';
 
-const createTemplate = ({ title = '', rating = '', year = '', duration = '', genre = [], imgSrc = '', description = '', comments = [], userDetails = {} }) => `
+
+const createTemplate = ({ title = '', rating = '', release = {}, duration = '', genre = [], imgSrc = '', description = '', comments = [], userDetails = {} }) => `
 <article class="film-card">
   <a class="film-card__link">
     <h3 class="film-card__title">${title}</h3>
     <p class="film-card__rating">${rating}</p>
     <p class="film-card__info">
-      <span class="film-card__year">${year}</span>
-      <span class="film-card__duration">${duration}</span>
+      <span class="film-card__year">${dayjs(release.date).year()}</span>
+      <span class="film-card__duration">${dayjs().set('hour', Math.floor(duration / 60)).set('minute', duration % 60).format('h[h] mm[m]')}</span>
       <span class="film-card__genre">${genre.map((genr) => genr).join(' ')}</span>
     </p>
     <img src="${imgSrc}" alt="" class="film-card__poster">
