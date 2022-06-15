@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import he from 'he';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 
 const createTemplateCommentList = ({ id, emojiSrc, text, author, date }) => `
@@ -7,7 +8,7 @@ const createTemplateCommentList = ({ id, emojiSrc, text, author, date }) => `
       <img src="${emojiSrc}"  width="55" height="55" alt="emoji-smile">
     </span>
     <div>
-      <p class="film-details__comment-text">${text}</p>
+      <p class="film-details__comment-text">${he.encode(text)}</p>
       <p class="film-details__comment-info">
         <span class="film-details__comment-author">${author}</span>
         <span class="film-details__comment-day">${dayjs(date).format('YYYY/MM/DD hh:mm')}</span>
@@ -280,7 +281,7 @@ export default class PopupView extends AbstractStatefulView {
   };
 
   #submitAddCommentFormHandler = (e) => {
-    if (e.key === 'Enter' && e.ctrlKey) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.cmdKey)) {
 
       e.preventDefault();
       if (this._state.comment && this._state.showedEmojiImgSrc) {

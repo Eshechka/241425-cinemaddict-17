@@ -6,13 +6,18 @@ import MainNavigationView from '../view/main-navigation-view.js';
 export default class FiltersPresenter {
   #filterModel = null;
   #filmModel = null;
+
   #mainNavigationContainer = null;
   #mainNavigationComponent = null;
+
+  #currentFilter = 'all';
 
   constructor(mainNavigationContainer, filmModel, filterModel) {
     this.#mainNavigationContainer = mainNavigationContainer;
     this.#filmModel = filmModel;
     this.#filterModel = filterModel;
+
+    // this.#currentFilter = 'all';
 
     this.#mainNavigationComponent = new MainNavigationView(this.filters);
 
@@ -32,6 +37,7 @@ export default class FiltersPresenter {
 
   get filters() {
     const films = this.#filmModel.films;
+    this.#currentFilter = this.#filterModel.filter;
 
     return {
       'all': { text: 'All movies', count: films.length },
@@ -58,10 +64,10 @@ export default class FiltersPresenter {
 
     switch (updateType) {
       case 'UPDATE_FILTER':
-        this.#mainNavigationComponent = new MainNavigationView(this.filters, data);
+        this.#mainNavigationComponent = new MainNavigationView(this.filters, data);//data - updatedFilter
         break;
       case 'UPDATE_FILM':
-        this.#mainNavigationComponent = new MainNavigationView(this.filters);
+        this.#mainNavigationComponent = new MainNavigationView(this.filters, this.#currentFilter);//data - updatedFilm
         break;
     }
 
