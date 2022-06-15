@@ -277,11 +277,11 @@ export default class PopupView extends AbstractStatefulView {
 
   setSubmitAddCommentFormHandler = (callback) => {
     this._callback.submitAddCommentForm = callback;
-    document.addEventListener('keypress', this.#submitAddCommentFormHandler);
+    document.addEventListener('keydown', this.#submitAddCommentFormHandler);
   };
 
   #submitAddCommentFormHandler = (e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.cmdKey)) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
 
       e.preventDefault();
       if (this._state.comment && this._state.showedEmojiImgSrc) {
