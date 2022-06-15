@@ -1,8 +1,8 @@
 import dayjs from 'dayjs';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 
-const createTemplateCommentList = ({ emojiSrc, text, author, date }) => `
-  <li class="film-details__comment">
+const createTemplateCommentList = ({ id, emojiSrc, text, author, date }) => `
+  <li class="film-details__comment" data-id=${id}>
     <span class="film-details__comment-emoji">
       <img src="${emojiSrc}"  width="55" height="55" alt="emoji-smile">
     </span>
@@ -168,29 +168,6 @@ export default class PopupView extends AbstractStatefulView {
     scrollPos: 0,
   });
 
-  // static parseStateToFilm = (state) => {
-
-  //   const newComment = {
-  //     id: state.comments.length,
-  //     filmId: state.id,
-  //     text: state.comment,
-  //     emojiSrc: state.showedEmojiImgSrc,
-  //     author: 'me',
-  //     day: dayjs().format('YYYY/MM/DD H:mm'),
-  //   };
-  //   const newFilmComments = state.comments.push(newComment);
-
-  //   const film = { ...state, comments: newFilmComments };
-
-  //   delete film.comment;
-  //   delete film.clickedEmoji;
-  //   delete film.showedEmojiImgSrc;
-  //   delete film.isCommentFocused;
-  //   delete film.scrollPos;
-
-  //   return film;
-  // };
-
   constructor(film = {}) {
     super();
     this._state = PopupView.parseFilmToState(film);
@@ -214,6 +191,8 @@ export default class PopupView extends AbstractStatefulView {
     this.#setInnerHandlers();
     this.setCloseElementClickHandler(this._callback.clickCloseElement);
     this.setToggleControlHandler(this._callback.toggleControl);
+    this.setClickDeleteHandler(this._callback.clickDelete);
+    this.setSubmitAddCommentFormHandler(this._callback.submitAddCommentForm);
   };
 
   setCloseElementClickHandler = (callback) => {
@@ -246,6 +225,28 @@ export default class PopupView extends AbstractStatefulView {
     });
   };
 
+  setClickDeleteHandler = (callback) => {
+    this._callback.clickDelete = callback;
+    this.#getCommentListElement().addEventListener('click', this.#clickDeleteHandler);
+  };
+
+  #clickDeleteHandler = (e) => {
+    e.preventDefault();
+
+    const commentElement = e.target.dataset.id ? e.target : e.target.closest('[data-id]');
+    const changedCommentId = +commentElement.dataset.id;
+
+    this.#setScrollPage(this._state.scrollPos);
+
+    const deletedComment = [...this._state.comments].find((comment) => comment.id === changedCommentId);
+    const newCommentsState = [...this._state.comments].filter((comment) => comment.id !== changedCommentId);
+    this._callback.clickDelete(e, newCommentsState, deletedComment);
+
+    this.updateElement({
+      'comments': newCommentsState,
+    });
+  };
+
   #clickEmojiHandler = (e) => {
     e.preventDefault();
 
@@ -256,8 +257,6 @@ export default class PopupView extends AbstractStatefulView {
 
     if (clickedEmojiElem) {
       const clickedEmoji = clickedEmojiElem.parentNode.getAttribute('for');
-
-      // const newFilm = PopupView.parseStateToFilm(this._state);
 
       this.updateElement({
         clickedEmoji: clickedEmoji,
@@ -273,6 +272,43 @@ export default class PopupView extends AbstractStatefulView {
       isCommentFocused: true,
       scrollPos: this.element.scrollTop,
     });
+  };
+
+  setSubmitAddCommentFormHandler = (callback) => {
+    this._callback.submitAddCommentForm = callback;
+    document.addEventListener('keypress', this.#submitAddCommentFormHandler);
+  };
+
+  #submitAddCommentFormHandler = (e) => {
+    if (e.key === 'Enter' && e.ctrlKey) {
+
+      e.preventDefault();
+      if (this._state.comment && this._state.showedEmojiImgSrc) {
+
+        this.#setScrollPage(this._state.scrollPos);
+
+        const newComment = {
+          filmId: this._state.id,
+          text: this._state.comment,
+          emojiSrc: this._state.showedEmojiImgSrc,
+          author: 'Me',
+          day: dayjs().format('YYYY/MM/DD H:mm'),
+        };
+
+        const newFilmComments = [...this._state.comments, newComment];
+
+        this._callback.submitAddCommentForm(e, newComment);
+
+        this.updateElement({
+          comments: newFilmComments,
+          comment: '',
+          clickedEmoji: null,
+          showedEmojiImgSrc: null,
+          isCommentFocused: false,
+          scrollPos: this.element.scrollTop,
+        });
+      }
+    }
   };
 
   #setCommentFocus = (isFocused) => {
@@ -302,4 +338,7 @@ export default class PopupView extends AbstractStatefulView {
   #getEmojiListElement = () => this.element.querySelector('.film-details__emoji-list');
   #getInputCommentElement = () => this.element.querySelector('.film-details__comment-input');
 
+  #getCommentListElement = () => this.element.querySelector('.film-details__comments-list');
+
+  getAddCommentFormElement = () => this.element.querySelector('form.film-details__inner');
 }

@@ -62,6 +62,7 @@ export default class FilmsPresenter {
 
     this.#filmsModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
+    this.#commentsModel.addObserver(this.#handleModelEvent);
   }
 
   init = () => {
@@ -215,15 +216,28 @@ export default class FilmsPresenter {
     }
   };
 
-  #handleViewAction = (typeAction, updatedFilm) => {
+  #handleViewAction = (typeAction, changed) => {
     switch (typeAction) {
       case 'UPDATE_FILM':
-        this.#filmsModel.updateFilm(updatedFilm);
+        this.#filmsModel.updateFilm(changed);//updatedFilm
+        break;
+      case 'ADD_COMMENT':
+        this.#commentsModel.addComment(changed);//addedComment
+        break;
+      case 'DELETE_COMMENT':
+        this.#commentsModel.deleteComment(changed);//deletedComment
         break;
     }
   };
 
   #handleModelEvent = (updateType, data) => {
+    const cardAll = data.filmId ? this.#cardPresenterAll.get(data.filmId) : null;
+    const cardTopRated = data.filmId ? this.#cardPresenterTopRated.get(data.filmId) : null;
+    const cardMostCommented = data.filmId ? this.#cardPresenterMostCommented.get(data.filmId) : null;
+    const cardDataAll = cardAll ? cardAll.getCardData() : null;
+    const cardDataTopRated = cardTopRated ? cardTopRated.getCardData() : null;
+    const cardDataMostCommented = cardMostCommented ? cardMostCommented.getCardData() : null;
+
     switch (updateType) {
       case 'UPDATE_FILTER':
         // убираем сортировку
@@ -242,6 +256,40 @@ export default class FilmsPresenter {
         this.#rerenderMapElement(this.#cardPresenterAll.get(data.id), data);
         this.#rerenderMapElement(this.#cardPresenterTopRated.get(data.id), data);
         this.#rerenderMapElement(this.#cardPresenterMostCommented.get(data.id), data);
+
+        this.#setFilmsWithComments();
+        break;
+      case 'ADD_COMMENT':
+        // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким filmId, обновляем его
+        if (cardAll) {
+          cardDataAll.comments.push(data);
+          this.#rerenderMapElement(cardAll, cardDataAll);
+        }
+        if (cardTopRated) {
+          cardDataAll.comments.push(data);
+          this.#rerenderMapElement(cardTopRated, cardDataTopRated);
+        }
+        if (cardMostCommented) {
+          cardDataAll.comments.push(data);
+          this.#rerenderMapElement(cardMostCommented, cardDataMostCommented);
+        }
+
+        this.#setFilmsWithComments();
+        break;
+      case 'DELETE_COMMENT':
+        // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким filmId, обновляем его
+        if (cardAll) {
+          cardDataAll.comments = cardDataAll.comments.filter((comment) => comment.id !== data.id);
+          this.#rerenderMapElement(cardAll, cardDataAll);
+        }
+        if (cardTopRated) {
+          cardDataTopRated.comments = cardDataTopRated.comments.filter((comment) => comment.id !== data.id);
+          this.#rerenderMapElement(cardTopRated, cardDataTopRated);
+        }
+        if (cardMostCommented) {
+          cardDataMostCommented.comments = cardDataMostCommented.comments.filter((comment) => comment.id !== data.id);
+          this.#rerenderMapElement(cardMostCommented, cardDataMostCommented);
+        }
 
         this.#setFilmsWithComments();
         break;

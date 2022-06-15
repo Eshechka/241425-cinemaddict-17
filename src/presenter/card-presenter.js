@@ -16,6 +16,7 @@ export default class CardPresenter {
 
   constructor(cardsContainer, handleViewAction, hidePopup) {
     this.#cardsContainer = cardsContainer;
+
     this.#handleViewAction = handleViewAction;
     this.#hidePopup = hidePopup;
   }
@@ -72,6 +73,11 @@ export default class CardPresenter {
     this.#cardComponent = null;
   };
 
+  getCardData = () => {
+    const data = { ...this.#cardInfo };
+    return data;
+  };
+
   #renderPopup = (popupFilm) => {
     this.#popupComponent = new PopupView(popupFilm);
 
@@ -80,6 +86,15 @@ export default class CardPresenter {
     render(this.#popupComponent, this.#popupContainer);
     this.#popupContainer.classList.add('hide-overflow');
 
+    const closePopupByEsc = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        this.destroyPopup();
+        this.#popupContainer.removeEventListener('keydown', closePopupByEsc);
+      }
+    };
+
+    this.#popupContainer.addEventListener('keydown', closePopupByEsc);
 
     this.#popupComponent.setToggleControlHandler((_, type) => {
       // обновляем данные
@@ -104,18 +119,18 @@ export default class CardPresenter {
       this.#handleViewAction('UPDATE_FILM', newCardInfo);
     });
 
-    this.#popupComponent.setCloseElementClickHandler(() => {
-      this.destroyPopup();
+    this.#popupComponent.setSubmitAddCommentFormHandler((_, newComment) => {
+      this.#handleViewAction('ADD_COMMENT', newComment);
     });
 
-    const closePopupByEsc = (e) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        this.destroyPopup();
-        this.#popupContainer.removeEventListener('keydown', closePopupByEsc);
-      }
-    };
-    this.#popupContainer.addEventListener('keydown', closePopupByEsc);
+    this.#popupComponent.setClickDeleteHandler((_, comments, comment) => {
+      this.#handleViewAction('DELETE_COMMENT', comment);
+    });
+
+    this.#popupComponent.setCloseElementClickHandler(() => {
+      this.destroyPopup();
+      this.#popupContainer.removeEventListener('keydown', closePopupByEsc);
+    });
   };
 
   destroyPopup = () => {
