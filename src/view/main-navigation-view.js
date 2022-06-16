@@ -1,17 +1,16 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { capitalizeStr } from '../helpers/common.js';
 
-const createFilterItemTemplate = (filter, count = 0) => {
-  if (filter !== 'all') {
-    return `<a href="#${filter}" class="main-navigation__item">${capitalizeStr(filter)}<span class="main-navigation__item-count">${count}</span></a>`;
-  }
-  return `<a href="#${filter}" class="main-navigation__item main-navigation__item--active">All movies</a>`;
-};
+const createFilterItemTemplate = (filter, count = 0, text = '', currentFilter = 'all') =>
+  `<a href="#${filter}" class="main-navigation__item main-navigation__item--${filter} ${currentFilter === filter ? 'main-navigation__item--active' : ''}">
+      ${text}
+      ${filter === 'all' ? '' : `<span class="main-navigation__item-count">${count}</span>`}
+    </a>
+  `;
 
-const createTemplate = (filtersFilms) => {
+const createTemplate = (filterFilms, currentFilter) => {
 
-  const filterItemsTemplate = Object.entries(filtersFilms)
-    .map(([filter, count]) => createFilterItemTemplate(filter, count))
+  const filterItemsTemplate = Object.entries(filterFilms)
+    .map(([filter, filterData]) => createFilterItemTemplate(filter, filterData.count, filterData.text, currentFilter))
     .join('');
 
   return `
@@ -22,15 +21,35 @@ const createTemplate = (filtersFilms) => {
 };
 
 export default class MainNavigationView extends AbstractView {
-  #filtersFilms = null;
+  #filterFilms = null;
+  #currentFilter = null;
 
-  constructor(filtersFilms = {}) {
+  constructor(filterFilms = {}, currentFilter = 'all') {
     super();
-    this.#filtersFilms = filtersFilms;
+    this.#filterFilms = filterFilms;
+    this.#currentFilter = currentFilter;
   }
 
   get template() {
-    return createTemplate(this.#filtersFilms);
+    return createTemplate(this.#filterFilms, this.#currentFilter);
   }
+
+  setClickHandler = (callback) => {
+    this._callback.click = callback;
+    this.#getAllFilterElement().addEventListener('click', (e) => this.#clickHandler(e, 'all'));
+    this.#getWatchlistFilterElement().addEventListener('click', (e) => this.#clickHandler(e, 'watchlist'));
+    this.#getHistoryFilterElement().addEventListener('click', (e) => this.#clickHandler(e, 'already_watched'));
+    this.#getFavoritesFilterElement().addEventListener('click', (e) => this.#clickHandler(e, 'favorite'));
+  };
+
+  #clickHandler = (e, type) => {
+    e.preventDefault();
+    this._callback.click(e, type);
+  };
+
+  #getAllFilterElement = () => this.element.querySelector('.main-navigation__item--all');
+  #getWatchlistFilterElement = () => this.element.querySelector('.main-navigation__item--watchlist');
+  #getHistoryFilterElement = () => this.element.querySelector('.main-navigation__item--already_watched');
+  #getFavoritesFilterElement = () => this.element.querySelector('.main-navigation__item--favorite');
 
 }
