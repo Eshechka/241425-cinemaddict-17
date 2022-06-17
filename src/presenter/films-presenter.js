@@ -3,7 +3,7 @@ import { sortRating, sortDate } from '../helpers/common.js';
 
 import FilmsView from '../view/films-view.js';
 import FilmsListView from '../view/films-list-view.js';
-
+import LoadingView from '../view/loading-view.js';
 import ShowMoreBtnView from '../view/show-more-btn-view.js';
 
 import EmptyFilmsListView from '../view/empty-films-list-view.js';
@@ -33,9 +33,12 @@ export default class FilmsPresenter {
   #mostCommentedFilmsComponent = null;
   #showMoreAllFilmsBtnComponent = null;
   #sortComponent = null;
+  #loadingComponent = new LoadingView();
 
   #sortingMode = 'default';
   #filterType = 'all';
+
+  #isLoading = true;
 
   #openedPopupCardPresenter = null;
 
@@ -67,15 +70,6 @@ export default class FilmsPresenter {
   }
 
   init = () => {
-    this.#setFilmsWithComments();
-
-    if (this.films.length) {
-      this.#renderSorting();
-    }
-
-    // рендерим общий контейнер для всех списков фильмов
-    render(this.#filmsComponent, this.#filmsContainer);
-
     this.#renderFilms();
   };
 
@@ -102,12 +96,9 @@ export default class FilmsPresenter {
     return films.filter((film) => film.userDetails[type] === true);
   };
 
-  // Добавляет каждому фильму массив его комментариев
-  #setFilmsWithComments = () => {
-    this.#films = this.#filmsModel.films.map((film) => {
-      film.comments = this.#commentsModel.comments.filter((comment) => comment.filmId === film.id);
-      return film;
-    });
+  // Обновляет данные фильма
+  #setFilms = () => {
+    this.#films = this.#filmsModel.films;
   };
 
   #renderSorting = () => {
@@ -117,6 +108,12 @@ export default class FilmsPresenter {
   };
 
   #renderFilms = () => {
+
+    if (this.#isLoading) {
+      this.#renderLoading();
+      return;
+    }
+
     // рендерим компоненты под разные списки фильмов
     this.#renderFilmsComponent(this.#allFilmsComponent, this.#cardPresenterAll, this.films, this.#renderedAllCardsCount);
     this.#renderShowMoreBtn(this.#showMoreAllFilmsBtnComponent, this.#allFilmsComponent.element, this.#allFilmsComponent.getFilmsListContainer(), this.films, this.#cardPresenterAll, this.#renderedAllCardsCount);
@@ -128,11 +125,11 @@ export default class FilmsPresenter {
 
   // рендерит компоненты списка фильмов
   #renderFilmsComponent = (filmsListComponent, cardPresenterMap, films, amountFirstRender = 1, place = RenderPosition.BEFOREEND) => {
+    render(filmsListComponent, this.#filmsComponent.element, place);
     if (films.length) {
       if (this.#emptyFilmsComponent) {
         remove(this.#emptyFilmsComponent);
       }
-      render(filmsListComponent, this.#filmsComponent.element, place);
       // рендерим карточки фильмов
       this.#renderCards(filmsListComponent.getFilmsListContainer(), films.slice(0, amountFirstRender), cardPresenterMap);
     } else {
@@ -158,7 +155,7 @@ export default class FilmsPresenter {
     }
 
     for (let i = 0; i < cards.length; i++) {
-      const cardPresenter = new CardPresenter(container, this.#handleViewAction, this.#hidePopup);
+      const cardPresenter = new CardPresenter(container, this.#handleViewAction, this.#hidePopup, this.#commentsModel);
 
       // добавляем отрисованные cardPresenter-ы в cardPresenterMap
       cardPresenterMap.set(cards[i].id, cardPresenter);
@@ -218,6 +215,10 @@ export default class FilmsPresenter {
     }
   };
 
+  #renderLoading = () => {
+    render(this.#loadingComponent, this.#filmsContainer, RenderPosition.BEFOREEND);
+  };
+
   #handleViewAction = (typeAction, changed) => {
     switch (typeAction) {
       case 'UPDATE_FILM':
@@ -233,12 +234,31 @@ export default class FilmsPresenter {
   };
 
   #handleModelEvent = (updateType, data) => {
-    const cardAll = data.filmId ? this.#cardPresenterAll.get(data.filmId) : null;
-    const cardTopRated = data.filmId ? this.#cardPresenterTopRated.get(data.filmId) : null;
-    const cardMostCommented = data.filmId ? this.#cardPresenterMostCommented.get(data.filmId) : null;
+    const cardAll = data && data.filmId ? this.#cardPresenterAll.get(data.filmId) : null;
+    const cardTopRated = data && data.filmId ? this.#cardPresenterTopRated.get(data.filmId) : null;
+    const cardMostCommented = data && data.filmId ? this.#cardPresenterMostCommented.get(data.filmId) : null;
     const cardData = cardAll ? cardAll.getCardData() : null;
 
     switch (updateType) {
+      case 'INIT':
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+
+        this.#setFilms();
+
+        if (this.films.length) {
+          this.#renderSorting();
+        }
+        // рендерим общий контейнер для всех списков фильмов
+        render(this.#filmsComponent, this.#filmsContainer);
+
+        this.#renderFilms();
+        break;
+      case 'GET_FILM_COMMENTS':
+        if (data) {
+          cardAll.updateCardComments(data.comments);
+        }
+        break;
       case 'UPDATE_FILTER':
         // убираем сортировку
         this.#sortingMode = 'default';
@@ -256,14 +276,14 @@ export default class FilmsPresenter {
         this.#rerenderMapElement(this.#cardPresenterAll.get(data.id), data);
         this.#rerenderMapElement(this.#cardPresenterTopRated.get(data.id), data);
         this.#rerenderMapElement(this.#cardPresenterMostCommented.get(data.id), data);
-        this.#setFilmsWithComments();
-
+        this.#setFilms();
 
         if (this.#filterType !== 'all') {
           this.#clearFilmList(this.#cardPresenterAll, this.#showMoreAllFilmsBtnComponent);
           this.#renderFilmsComponent(this.#allFilmsComponent, this.#cardPresenterAll, this.films, this.#renderedAllCardsCount, RenderPosition.AFTERBEGIN);
           this.#renderShowMoreBtn(this.#showMoreAllFilmsBtnComponent, this.#allFilmsComponent.element, this.#allFilmsComponent.getFilmsListContainer(), this.films, this.#cardPresenterAll, this.#renderedAllCardsCount);
         }
+        this.#emptyFilmsComponent.setTitle(EMPTY_TITLES[this.#filterType]);
         break;
       case 'ADD_COMMENT':
         // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким filmId, обновляем его
@@ -274,7 +294,7 @@ export default class FilmsPresenter {
           this.#rerenderMapElement(cardMostCommented, cardData);
         }
 
-        this.#setFilmsWithComments();
+        this.#setFilms();
         break;
       case 'DELETE_COMMENT':
         // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким filmId, обновляем его
@@ -285,7 +305,7 @@ export default class FilmsPresenter {
           this.#rerenderMapElement(cardMostCommented, cardData);
         }
 
-        this.#setFilmsWithComments();
+        this.#setFilms();
         break;
     }
   };

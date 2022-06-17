@@ -12,10 +12,16 @@ export default class CardPresenter {
   #handleViewAction = null;
   #hidePopup = null;
 
+  #commentsModel = null;
+
   #cardInfo = null;
 
-  constructor(cardsContainer, handleViewAction, hidePopup) {
+  #isLoading = true;
+
+  constructor(cardsContainer, handleViewAction, hidePopup, commentsModel) {
     this.#cardsContainer = cardsContainer;
+
+    this.#commentsModel = commentsModel;
 
     this.#handleViewAction = handleViewAction;
     this.#hidePopup = hidePopup;
@@ -37,7 +43,7 @@ export default class CardPresenter {
     }
 
     this.#cardComponent.setClickHandler(() => {
-      this.#hidePopup(this);
+      this.#commentsModel.init(this.#cardInfo.id);
       this.#renderPopup(this.#cardInfo);
     });
 
@@ -79,10 +85,17 @@ export default class CardPresenter {
   };
 
   #renderPopup = (popupFilm) => {
-    this.#popupComponent = new PopupView(popupFilm);
+    this.#hidePopup(this);
 
+    // создаем попап, данные зависят от того, пришла ли информация с сервера
+    if (this.#isLoading) {
+      this.#popupComponent = new PopupView({ ...popupFilm, comments: null });
+    } else {
+      this.#popupComponent = new PopupView(popupFilm);
+    }
+
+    // рендерим попап
     this.#popupContainer = document.body;
-
     render(this.#popupComponent, this.#popupContainer);
     this.#popupContainer.classList.add('hide-overflow');
 
@@ -123,7 +136,7 @@ export default class CardPresenter {
       this.#handleViewAction('ADD_COMMENT', newComment);
     });
 
-    this.#popupComponent.setClickDeleteHandler((_, comments, comment) => {
+    this.#popupComponent.setClickDeleteHandler((_, comment) => {
       this.#handleViewAction('DELETE_COMMENT', comment);
     });
 
@@ -140,4 +153,17 @@ export default class CardPresenter {
     this.#popupContainer.classList.remove('hide-overflow');
   };
 
+  updateCardComments = (newComments) => {
+    this.#isLoading = false;
+    // remove(this.#loadingComponent);
+
+    const updatedComments = this.#cardInfo.comments.map((commentId, ndx) =>
+      ({ id: commentId, ...newComments[ndx] })
+    );
+
+    this.#cardInfo.comments = updatedComments;
+
+    this.#renderPopup(this.#cardInfo);
+
+  };
 }

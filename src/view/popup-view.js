@@ -2,10 +2,25 @@ import dayjs from 'dayjs';
 import he from 'he';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 
-const createTemplateCommentList = ({ id, emojiSrc, text, author, date }) => `
+const getEmojiImgByName = (emojiName) => {
+  if (!emojiName) {
+    return '';
+  }
+
+  return `./images/emoji/${emojiName}.png`;
+};
+const insertEmojiImg = (imgSrc) => {
+  if (!imgSrc) {
+    return '';
+  }
+
+  return `<img src="${imgSrc}" width="100%" height="100%" alt="clicked emoji"/>`;
+};
+
+const createTemplateCommentList = ({ id, emojiName, text, author, date }) => `
   <li class="film-details__comment" data-id=${id}>
     <span class="film-details__comment-emoji">
-      <img src="${emojiSrc}"  width="55" height="55" alt="emoji-smile">
+      <img src="${getEmojiImgByName(emojiName)}"  width="55" height="55" alt="emoji-smile">
     </span>
     <div>
       <p class="film-details__comment-text">${he.encode(text)}</p>
@@ -18,22 +33,14 @@ const createTemplateCommentList = ({ id, emojiSrc, text, author, date }) => `
   </li>
 `;
 
-const insertEmojiImg = (imgSrc) => {
-  if (!imgSrc) {
-    return '';
-  }
-
-  return `<img src="${imgSrc}" width="100%" height="100%" alt="clicked emoji"/>`;
-};
-
-const createTemplateNewComment = (commentAmount, clickedEmoji, showedEmojiImgSrc, comment) => `
+const createTemplateNewComment = (commentAmount, clickedEmoji, showedEmojiName, comment) => `
 <section class="film-details__comments-wrap">
 <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${commentAmount}</span></h3>
 
 
 <div class="film-details__new-comment">
   <div class="film-details__add-emoji-label">
-  ${insertEmojiImg(showedEmojiImgSrc)}
+    ${insertEmojiImg(getEmojiImgByName(showedEmojiName))}
   </div>
 
   <label class="film-details__comment-label">
@@ -73,7 +80,7 @@ const createTemplateNewComment = (commentAmount, clickedEmoji, showedEmojiImgSrc
 </section>
 `;
 
-const createTemplate = ({ title = '', rating = '', duration = '', genre = [], imgSrc, description = '', titleOriginal = '', director = '', writers = '', actors = [], release = {}, userDetails = {}, comments = [], clickedEmoji = null, showedEmojiImgSrc = null, comment = '' }) => `
+const createTemplate = ({ film_info: { title = '', rating = '', duration = '', genre = [], imgSrc, description = '', alternativeTitle = '', ageRating = '', director = '', writers = [], actors = [], release = {} }, userDetails = {}, comments = null, clickedEmoji = null, showedEmojiName = null, comment = '' }) => `
 <section class="film-details">
   <form class="film-details__inner" action="" method="get">
     <div class="film-details__top-container">
@@ -84,14 +91,14 @@ const createTemplate = ({ title = '', rating = '', duration = '', genre = [], im
         <div class="film-details__poster">
           <img class="film-details__poster-img" src="${imgSrc}" alt="">
 
-          <p class="film-details__age">18+</p>
+          <p class="film-details__age">${ageRating}</p>
         </div>
 
         <div class="film-details__info">
           <div class="film-details__info-head">
             <div class="film-details__title-wrap">
               <h3 class="film-details__title">${title}</h3>
-              <p class="film-details__title-original">${titleOriginal}</p>
+              <p class="film-details__title-original">${alternativeTitle}</p>
             </div>
 
             <div class="film-details__rating">
@@ -106,7 +113,9 @@ const createTemplate = ({ title = '', rating = '', duration = '', genre = [], im
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Writers</td>
-              <td class="film-details__cell">${writers}</td>
+              ${writers.map((writer) => `
+              <td class="film-details__cell">${writer}</td>
+              `).join('')}
             </tr>
             <tr class="film-details__row">
               <td class="film-details__term">Actors</td>
@@ -149,22 +158,22 @@ const createTemplate = ({ title = '', rating = '', duration = '', genre = [], im
 
     <div class="film-details__bottom-container">
 
-    <ul class="film-details__comments-list">
-      ${comments.map(createTemplateCommentList).join('')}
-    </ul>
+    ${comments ? `<ul class="film-details__comments-list">
+          ${comments.map(createTemplateCommentList).join('')}
+          ${createTemplateNewComment(comments.length, clickedEmoji, showedEmojiName, comment)}
+      </ul>` : '<h3 class="film-details__comments-title">Не удалось загрузить комменатрии</h3>'}
 
-    ${createTemplateNewComment(comments.length, clickedEmoji, showedEmojiImgSrc, comment)}
     </div>
   </form>
 </section>
-`;
+  `;
 
 export default class PopupView extends AbstractStatefulView {
   static parseFilmToState = (film) => ({
     ...film,
     comment: '',
     clickedEmoji: null,
-    showedEmojiImgSrc: null,
+    showedEmojiName: null,
     isCommentFocused: false,
     scrollPos: 0,
   });
@@ -173,7 +182,9 @@ export default class PopupView extends AbstractStatefulView {
     super();
     this._state = PopupView.parseFilmToState(film);
 
-    this.#setInnerHandlers();
+    if (this._state.comment) {
+      this.#setInnerHandlers();
+    }
   }
 
   get template() {
@@ -189,10 +200,12 @@ export default class PopupView extends AbstractStatefulView {
     this.#setScrollPage(this._state.scrollPos);
     this.#setCommentFocus(this._state.isCommentFocused);
 
-    this.#setInnerHandlers();
+    if (this._state.comment) {
+      this.#setInnerHandlers();
+      this.setClickDeleteHandler(this._callback.clickDelete);
+    }
     this.setCloseElementClickHandler(this._callback.clickCloseElement);
     this.setToggleControlHandler(this._callback.toggleControl);
-    this.setClickDeleteHandler(this._callback.clickDelete);
     this.setSubmitAddCommentFormHandler(this._callback.submitAddCommentForm);
   };
 
@@ -228,7 +241,9 @@ export default class PopupView extends AbstractStatefulView {
 
   setClickDeleteHandler = (callback) => {
     this._callback.clickDelete = callback;
-    this.#getCommentListElement().addEventListener('click', this.#clickDeleteHandler);
+    if (this._state.comment) {
+      this.#getCommentListElement().addEventListener('click', this.#clickDeleteHandler);
+    }
   };
 
   #clickDeleteHandler = (e) => {
@@ -239,9 +254,9 @@ export default class PopupView extends AbstractStatefulView {
 
     this.#setScrollPage(this._state.scrollPos);
 
-    const deletedComment = [...this._state.comments].find((comment) => comment.id === changedCommentId);
-    const newCommentsState = [...this._state.comments].filter((comment) => comment.id !== changedCommentId);
-    this._callback.clickDelete(e, newCommentsState, deletedComment);
+    const deletedComment = [...this._state.comments].find((comment) => +comment.id === changedCommentId);
+    const newCommentsState = [...this._state.comments].filter((comment) => +comment.id !== changedCommentId);
+    this._callback.clickDelete(e, { filmId: this._state.id, ...deletedComment });
 
     this.updateElement({
       'comments': newCommentsState,
@@ -256,12 +271,13 @@ export default class PopupView extends AbstractStatefulView {
       clickedEmojiElem = e.target;
     }
 
+    // clickedEmojiElem - img
     if (clickedEmojiElem) {
       const clickedEmoji = clickedEmojiElem.parentNode.getAttribute('for');
 
       this.updateElement({
         clickedEmoji: clickedEmoji,
-        showedEmojiImgSrc: clickedEmojiElem.getAttribute('src'),
+        showedEmojiName: clickedEmoji.slice(6),
         scrollPos: this.element.scrollTop,
       });
     }
@@ -284,14 +300,14 @@ export default class PopupView extends AbstractStatefulView {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
 
       e.preventDefault();
-      if (this._state.comment && this._state.showedEmojiImgSrc) {
+      if (this._state.comment && this._state.showedEmojiName) {
 
         this.#setScrollPage(this._state.scrollPos);
 
         const newComment = {
           filmId: this._state.id,
           text: this._state.comment,
-          emojiSrc: this._state.showedEmojiImgSrc,
+          emojiName: this._state.showedEmojiName,
           author: 'Me',
           day: dayjs().format('YYYY/MM/DD H:mm'),
         };
@@ -304,7 +320,7 @@ export default class PopupView extends AbstractStatefulView {
           comments: newFilmComments,
           comment: '',
           clickedEmoji: null,
-          showedEmojiImgSrc: null,
+          showedEmojiName: null,
           isCommentFocused: false,
           scrollPos: this.element.scrollTop,
         });
@@ -340,6 +356,4 @@ export default class PopupView extends AbstractStatefulView {
   #getInputCommentElement = () => this.element.querySelector('.film-details__comment-input');
 
   #getCommentListElement = () => this.element.querySelector('.film-details__comments-list');
-
-  getAddCommentFormElement = () => this.element.querySelector('form.film-details__inner');
 }

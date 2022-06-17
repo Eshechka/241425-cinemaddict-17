@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import AbstractView from '../framework/view/abstract-view.js';
 
 
-const createTemplate = ({ title = '', rating = '', release = {}, duration = '', genre = [], imgSrc = '', description = '', comments = [], userDetails = {} }) => `
+const createTemplate = ({ film_info: { title = '', rating = '', release = {}, duration = '', genre = [], imgSrc = '', description = '' }, userDetails = {}, comments = [] }) => `
 <article class="film-card">
   <a class="film-card__link">
     <h3 class="film-card__title">${title}</h3>
@@ -42,18 +42,18 @@ export default class FilmCardView extends AbstractView {
     this.element.addEventListener('click', this.#clickHandler);
   };
 
-  setToggleControlHandler = (callback) => {
-    this._callback.toggleControl = callback;
-    this.#getWatchlistElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'watchlist'));
-    this.#getWatchedElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'already_watched'));
-    this.#getFavoriteElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'favorite'));
-  };
-
   #clickHandler = (e) => {
     e.preventDefault();
     if (!e.target.classList.contains(this.#getControlsClass())) {
       this._callback.click();
     }
+  };
+
+  setToggleControlHandler = (callback) => {
+    this._callback.toggleControl = callback;
+    this.#getWatchlistElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'watchlist'));
+    this.#getWatchedElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'already_watched'));
+    this.#getFavoriteElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'favorite'));
   };
 
   #clickToggleControlHandler = (e, type) => {
