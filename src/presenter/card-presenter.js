@@ -66,7 +66,7 @@ export default class CardPresenter {
       }
 
       // вызываем метод из презентера films, который вызовет метод модели filmsModel (с обновленными данными)
-      this.#handleViewAction('UPDATE_FILM', { ...this.#cardInfo, userDetails: newUserDetails });
+      this.#handleViewAction('UPDATE_FILM', { ...this.#cardInfo, userDetails: newUserDetails, comments: [] });
     });
   };
 
@@ -128,7 +128,7 @@ export default class CardPresenter {
       }
 
       // вызываем метод из film-presenter (с обновленными данными)
-      const newCardInfo = Object.assign({}, { ...this.#cardInfo, userDetails: newUserDetails });
+      const newCardInfo = Object.assign({}, { ...this.#cardInfo, userDetails: newUserDetails, comments: [] });
       this.#handleViewAction('UPDATE_FILM', newCardInfo);
     });
 

@@ -12,7 +12,7 @@ export default class FilmsApiService extends ApiService {
   }
 
   getComments(filmId) {
-    return this._load({ url: `/comment/${filmId}` })
+    return this._load({ url: `/comments/${filmId}` })
       .then(ApiService.parseResponse);
   }
 
@@ -20,12 +20,14 @@ export default class FilmsApiService extends ApiService {
     const adaptedFilm = {
       ...film,
       ['film_info']: {
+        ...film.film_info,
         'alternative_title': film.film_info.alternativeTitle,
         'total_rating': film.film_info.rating,
         'poster': film.film_info.imgSrc,
         'age_rating': film.film_info.ageRating,
         'runtime': film.film_info.duration,
       },
+      // comments: film.comments.map((cmt) => cmt.id),
       'user_details': film.userDetails,
     };
 
