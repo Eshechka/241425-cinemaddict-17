@@ -17,8 +17,6 @@ export default class FiltersPresenter {
     this.#filmModel = filmModel;
     this.#filterModel = filterModel;
 
-    // this.#currentFilter = 'all';
-
     this.#mainNavigationComponent = new MainNavigationView(this.filters);
 
     this.#filterModel.addObserver(this.#handleModelEvent);
@@ -63,6 +61,9 @@ export default class FiltersPresenter {
     const prevMainNavigationComponent = this.#mainNavigationComponent;
 
     switch (updateType) {
+      case 'INIT':
+        this.#mainNavigationComponent = new MainNavigationView(this.filters);//data - none
+        break;
       case 'UPDATE_FILTER':
         this.#mainNavigationComponent = new MainNavigationView(this.filters, data);//data - updatedFilter
         break;

@@ -1,4 +1,4 @@
-import { render } from '../framework/render.js';
+import { render, replace } from '../framework/render.js';
 
 import TitleView from '../view/title-view.js';
 import StatisticsView from '../view/statistics-view.js';
@@ -14,21 +14,51 @@ const siteHeaderElement = document.querySelector('.header');
 const siteMainElement = document.querySelector('.main');
 const siteFooterStatisticsElement = document.querySelector('.footer__statistics');
 
+import FilmsApiService from '../films-api-service.js';
+
+const AUTHORIZATION = 'Basic li_dusha739';
+const END_POINT = 'https://17.ecmascript.pages.academy/cinemaddict';
 
 export default class MainPresenter {
-  #filmModel = new FilmModel();
-  #commentModel = new CommentModel();
+  #filmsModel = new FilmModel(new FilmsApiService(END_POINT, AUTHORIZATION));
+  #commentModel = new CommentModel(new FilmsApiService(END_POINT, AUTHORIZATION));
   #filterModel = new FiltertModel();
+
+  #titleViewComponent = new TitleView();
 
   init = () => {
 
-    render(new TitleView(), siteHeaderElement);
+    render(this.#titleViewComponent, siteHeaderElement);
 
-    new FiltersPresenter(siteMainElement, this.#filmModel, this.#filterModel).init();
+    new FiltersPresenter(siteMainElement, this.#filmsModel, this.#filterModel).init();
 
-    new FilmsPresenter(siteMainElement, this.#filmModel, this.#commentModel, this.#filterModel).init();
+    new FilmsPresenter(siteMainElement, this.#filmsModel, this.#commentModel, this.#filterModel).init();
 
-    render(new StatisticsView(this.#filmModel.films.length), siteFooterStatisticsElement);
+    this.#filmsModel.init();
+
+    render(new StatisticsView(this.#filmsModel.films.length), siteFooterStatisticsElement);
+
+    this.#filmsModel.addObserver(this.#handleModelEvent);
   };
+
+  #handleModelEvent = (updateType, data) => {
+    // запоминаем предыдущий cardComponent
+    const prevTitleViewComponent = this.#titleViewComponent;
+
+    switch (updateType) {
+      case 'INIT':
+        this.#titleViewComponent = new TitleView(this.#countWatched(data));
+        // заменяем разметку
+        replace(this.#titleViewComponent, prevTitleViewComponent);
+        break;
+      case 'UPDATE_FILM':
+        this.#titleViewComponent = new TitleView(this.#countWatched(this.#filmsModel.films));
+        // заменяем разметку
+        replace(this.#titleViewComponent, prevTitleViewComponent);
+        break;
+    }
+  };
+
+  #countWatched = (films) => films.reduce((sum, film) => sum + film.userDetails.already_watched, 0);
 
 }
