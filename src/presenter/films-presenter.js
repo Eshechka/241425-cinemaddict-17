@@ -292,9 +292,12 @@ export default class FilmsPresenter {
           this.#rerenderMapElement(cardAll, cardData);
           this.#rerenderMapElement(cardTopRated, cardData);
           this.#rerenderMapElement(cardMostCommented, cardData);
+
+          cardAll.updateCardCommentsAfterAdd();
         }
 
         this.#setFilms();
+
         break;
       case 'DELETE_COMMENT':
         // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким filmId, обновляем его
@@ -303,6 +306,8 @@ export default class FilmsPresenter {
           this.#rerenderMapElement(cardAll, cardData);
           this.#rerenderMapElement(cardTopRated, cardData);
           this.#rerenderMapElement(cardMostCommented, cardData);
+
+          cardAll.updateCardCommentsAfterDelete(data);
         }
 
         this.#setFilms();

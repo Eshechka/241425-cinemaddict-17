@@ -44,29 +44,41 @@ export default class CommentModel extends Observable {
     return this.#comments;
   }
 
-  addComment = (addedComment) => {
-    addedComment.id = this.comments.length;
+  addComment = async (addedComment) => {
+    try {
+      const response = await this.#filmsApiService.addComment(addedComment);
+      const data = this.#adaptToClient(response);
 
-    this.comments = [
-      ...this.comments,
-      addedComment,
-    ];
+      const newFilmComments = [...data.comments].map(this.#adaptToClient);
+      const newComment = newFilmComments[newFilmComments.length - 1];
 
-    this._notify('ADD_COMMENT', addedComment);
+      newComment.filmId = data.movie.id;
+      this.comments = [...this.comments, newComment];
+
+      this._notify('ADD_COMMENT', newComment);
+    } catch (err) {
+      throw new Error('Can\'t add comment');
+    }
   };
 
-  deleteComment = (deletedComment) => {
+  deleteComment = async (deletedComment) => {
     const ndx = this.comments.findIndex((comment) => comment.id === deletedComment.id);
 
     if (ndx === -1) {
       throw new Error('Can\'t delete unexisting comment');
     }
 
-    this.comments = [
-      ...this.comments.slice(0, ndx),
-      ...this.comments.slice(ndx + 1),
-    ];
+    try {
+      await this.#filmsApiService.deleteComment(deletedComment);
+      this.comments = [
+        ...this.comments.slice(0, ndx),
+        ...this.comments.slice(ndx + 1),
+      ];
 
-    this._notify('DELETE_COMMENT', deletedComment);
+      this._notify('DELETE_COMMENT', deletedComment);
+    } catch (err) {
+      throw new Error('Can\'t delete comment');
+    }
   };
+
 }

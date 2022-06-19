@@ -33,7 +33,7 @@ const createTemplateCommentList = ({ id, emojiName, text, author, date }) => `
   </li>
 `;
 
-const createTemplateNewComment = (commentAmount, clickedEmoji, showedEmojiName, comment) => `
+const createTemplateNewComment = (commentAmount, clickedEmoji, showedEmojiName, comment, isFormDisabled) => `
 <section class="film-details__comments-wrap">
 <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${commentAmount}</span></h3>
 
@@ -44,7 +44,7 @@ const createTemplateNewComment = (commentAmount, clickedEmoji, showedEmojiName, 
   </div>
 
   <label class="film-details__comment-label">
-    <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${comment}</textarea>
+    <textarea ${isFormDisabled ? 'disabled' : ''} class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${comment}</textarea>
   </label>
 
   <div class="film-details__emoji-list">
@@ -80,7 +80,7 @@ const createTemplateNewComment = (commentAmount, clickedEmoji, showedEmojiName, 
 </section>
 `;
 
-const createTemplate = ({ film_info: { title = '', rating = '', duration = '', genre = [], imgSrc, description = '', alternativeTitle = '', ageRating = '', director = '', writers = [], actors = [], release = {} }, userDetails = {}, comments = null, clickedEmoji = null, showedEmojiName = null, comment = '' }) => `
+const createTemplate = ({ film_info: { title = '', rating = '', duration = '', genre = [], imgSrc, description = '', alternativeTitle = '', ageRating = '', director = '', writers = [], actors = [], release = {} }, userDetails = {}, comments = null, clickedEmoji = null, showedEmojiName = null, comment = '', isFormDisabled = false }) => `
 <section class="film-details">
   <form class="film-details__inner" action="" method="get">
     <div class="film-details__top-container">
@@ -160,7 +160,7 @@ const createTemplate = ({ film_info: { title = '', rating = '', duration = '', g
 
     ${comments ? `<ul class="film-details__comments-list">
           ${comments.map(createTemplateCommentList).join('')}
-          ${createTemplateNewComment(comments.length, clickedEmoji, showedEmojiName, comment)}
+          ${createTemplateNewComment(comments.length, clickedEmoji, showedEmojiName, comment, isFormDisabled)}
       </ul>` : '<h3 class="film-details__comments-title">Не удалось загрузить комменатрии</h3>'}
 
     </div>
@@ -169,20 +169,23 @@ const createTemplate = ({ film_info: { title = '', rating = '', duration = '', g
   `;
 
 export default class PopupView extends AbstractStatefulView {
-  static parseFilmToState = (film) => ({
+
+  static initState = (film) => ({
     ...film,
     comment: '',
     clickedEmoji: null,
     showedEmojiName: null,
     isCommentFocused: false,
     scrollPos: 0,
+
+    isFormDisabled: false,
   });
 
   constructor(film = {}) {
     super();
-    this._state = PopupView.parseFilmToState(film);
+    this._state = PopupView.initState(film);
 
-    if (this._state.comment) {
+    if (this._state.comments) {
       this.#setInnerHandlers();
     }
   }
@@ -200,7 +203,7 @@ export default class PopupView extends AbstractStatefulView {
     this.#setScrollPage(this._state.scrollPos);
     this.#setCommentFocus(this._state.isCommentFocused);
 
-    if (this._state.comment) {
+    if (this._state.comments) {
       this.#setInnerHandlers();
       this.setClickDeleteHandler(this._callback.clickDelete);
     }
@@ -241,7 +244,7 @@ export default class PopupView extends AbstractStatefulView {
 
   setClickDeleteHandler = (callback) => {
     this._callback.clickDelete = callback;
-    if (this._state.comment) {
+    if (this._state.comments) {
       this.#getCommentListElement().addEventListener('click', this.#clickDeleteHandler);
     }
   };
@@ -250,21 +253,28 @@ export default class PopupView extends AbstractStatefulView {
     e.preventDefault();
 
     const commentElement = e.target.dataset.id ? e.target : e.target.closest('[data-id]');
-    const changedCommentId = +commentElement.dataset.id;
+    if (commentElement) {
+      const changedCommentId = +commentElement.dataset.id;
 
-    this.#setScrollPage(this._state.scrollPos);
+      this.#setScrollPage(this._state.scrollPos);
 
-    const deletedComment = [...this._state.comments].find((comment) => +comment.id === changedCommentId);
-    const newCommentsState = [...this._state.comments].filter((comment) => +comment.id !== changedCommentId);
-    this._callback.clickDelete(e, { filmId: this._state.id, ...deletedComment });
+      const deletedComment = [...this._state.comments].find((comment) => +comment.id === changedCommentId);
+      // const newCommentsState = [...this._state.comments].filter((comment) => +comment.id !== changedCommentId);
+      this._callback.clickDelete(e, { filmId: this._state.id, ...deletedComment });
 
-    this.updateElement({
-      'comments': newCommentsState,
-    });
+      // this.updateElement({
+      //   'comments': newCommentsState,
+      // });
+    }
+
   };
 
   #clickEmojiHandler = (e) => {
     e.preventDefault();
+
+    if (this._state.isFormDisabled) {
+      return;
+    }
 
     let clickedEmojiElem = e.target.classList.contains('film-details__emoji-label') ? e.target.querySelector('img') : null;
     if (!clickedEmojiElem && e.target.parentNode.classList.contains('film-details__emoji-label')) {
@@ -300,6 +310,7 @@ export default class PopupView extends AbstractStatefulView {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
 
       e.preventDefault();
+
       if (this._state.comment && this._state.showedEmojiName) {
 
         this.#setScrollPage(this._state.scrollPos);
@@ -308,24 +319,34 @@ export default class PopupView extends AbstractStatefulView {
           filmId: this._state.id,
           text: this._state.comment,
           emojiName: this._state.showedEmojiName,
-          author: 'Me',
-          day: dayjs().format('YYYY/MM/DD H:mm'),
         };
-
-        const newFilmComments = [...this._state.comments, newComment];
 
         this._callback.submitAddCommentForm(e, newComment);
 
         this.updateElement({
-          comments: newFilmComments,
-          comment: '',
-          clickedEmoji: null,
-          showedEmojiName: null,
-          isCommentFocused: false,
-          scrollPos: this.element.scrollTop,
+          isFormDisabled: !this._state.isFormDisabled,
         });
       }
     }
+  };
+
+  updateAfterAddComment = () => {
+    this.updateElement({
+      comment: '',
+      clickedEmoji: null,
+      showedEmojiName: null,
+      isCommentFocused: false,
+      scrollPos: this.element.scrollTop,
+      isFormDisabled: !this._state.isFormDisabled,
+    });
+  };
+
+  updateAfterDeleteComment = (comment) => {
+    const newCommentsState = [...this._state.comments].filter((commentItem) => +commentItem.id !== +comment.id);
+
+    this.updateElement({
+      'comments': newCommentsState,
+    });
   };
 
   #setCommentFocus = (isFocused) => {

@@ -155,7 +155,6 @@ export default class CardPresenter {
 
   updateCardComments = (newComments) => {
     this.#isLoading = false;
-    // remove(this.#loadingComponent);
 
     const updatedComments = this.#cardInfo.comments.map((commentId, ndx) =>
       ({ id: commentId, ...newComments[ndx] })
@@ -166,4 +165,13 @@ export default class CardPresenter {
     this.#renderPopup(this.#cardInfo);
 
   };
+
+  updateCardCommentsAfterAdd = () => {
+    this.#popupComponent.updateAfterAddComment();
+  };
+
+  updateCardCommentsAfterDelete = (comment) => {
+    this.#popupComponent.updateAfterDeleteComment(comment);
+  };
+
 }

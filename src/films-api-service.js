@@ -3,6 +3,8 @@ import ApiService from './framework/api-service.js';
 const Method = {
   GET: 'GET',
   PUT: 'PUT',
+  POST: 'POST',
+  DELETE: 'DELETE',
 };
 
 export default class FilmsApiService extends ApiService {
@@ -27,7 +29,6 @@ export default class FilmsApiService extends ApiService {
         'age_rating': film.film_info.ageRating,
         'runtime': film.film_info.duration,
       },
-      // comments: film.comments.map((cmt) => cmt.id),
       'user_details': film.userDetails,
     };
 
@@ -52,6 +53,7 @@ export default class FilmsApiService extends ApiService {
     // Ненужные ключи мы удаляем
     delete adaptedComment.text;
     delete adaptedComment.emojiName;
+    delete adaptedComment.filmId;
 
     return adaptedComment;
   };
@@ -67,5 +69,27 @@ export default class FilmsApiService extends ApiService {
     const parsedResponse = await ApiService.parseResponse(response);
 
     return parsedResponse;
+  };
+
+  addComment = async (comment) => {
+    const response = await this._load({
+      url: `comments/${comment.filmId}`,
+      method: Method.POST,
+      body: JSON.stringify(this.#adaptCommentToServer(comment)),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+    });
+
+    const parsedResponse = await ApiService.parseResponse(response);
+
+    return parsedResponse;
+  };
+
+  deleteComment = async (comment) => {
+    const response = await this._load({
+      url: `comments/${comment.id}`,
+      method: Method.DELETE,
+    });
+
+    return response;
   };
 }
