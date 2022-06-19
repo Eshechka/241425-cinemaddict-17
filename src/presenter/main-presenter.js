@@ -16,7 +16,7 @@ const siteFooterStatisticsElement = document.querySelector('.footer__statistics'
 
 import FilmsApiService from '../films-api-service.js';
 
-const AUTHORIZATION = 'Basic li_dusha739';
+const AUTHORIZATION = 'Basic li_du_sha_739';
 const END_POINT = 'https://17.ecmascript.pages.academy/cinemaddict';
 
 export default class MainPresenter {

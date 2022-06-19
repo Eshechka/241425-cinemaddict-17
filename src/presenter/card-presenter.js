@@ -155,7 +155,6 @@ export default class CardPresenter {
 
   updateCardComments = (newComments) => {
     this.#isLoading = false;
-    // remove(this.#loadingComponent);
 
     const updatedComments = this.#cardInfo.comments.map((commentId, ndx) =>
       ({ id: commentId, ...newComments[ndx] })
@@ -166,4 +165,26 @@ export default class CardPresenter {
     this.#renderPopup(this.#cardInfo);
 
   };
+
+  shakePopupAddFormComment = () => {
+    this.#popupComponent.shakeElement(this.#popupComponent.getNewCommentElement());
+  };
+
+  shakePopupDeletingComment = (commentId) => {
+    const commentElement = this.#popupComponent.getCommentElement(commentId);
+    this.#popupComponent.shakeElement(commentElement);
+  };
+
+  cardComponentShake = () => {
+    this.#cardComponent.shake(() => { });
+  };
+
+  updateCardCommentsAfterAdd = () => {
+    this.#popupComponent.updateAfterAddComment();
+  };
+
+  updateCardCommentsAfterDelete = (comment) => {
+    this.#popupComponent.updateAfterDeleteComment(comment);
+  };
+
 }
