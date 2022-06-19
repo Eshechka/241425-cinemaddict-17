@@ -66,7 +66,7 @@ export default class CardPresenter {
       }
 
       // вызываем метод из презентера films, который вызовет метод модели filmsModel (с обновленными данными)
-      this.#handleViewAction('UPDATE_FILM', { ...this.#cardInfo, userDetails: newUserDetails, comments: [] });
+      this.#handleViewAction('UPDATE_FILM', { ...this.#cardInfo, userDetails: newUserDetails, comments: [] }, 'card');
     });
   };
 
@@ -129,7 +129,7 @@ export default class CardPresenter {
 
       // вызываем метод из film-presenter (с обновленными данными)
       const newCardInfo = Object.assign({}, { ...this.#cardInfo, userDetails: newUserDetails, comments: [] });
-      this.#handleViewAction('UPDATE_FILM', newCardInfo);
+      this.#handleViewAction('UPDATE_FILM', newCardInfo, 'popup');
     });
 
     this.#popupComponent.setSubmitAddCommentFormHandler((_, newComment) => {
@@ -170,6 +170,10 @@ export default class CardPresenter {
     this.#popupComponent.shakeElement(this.#popupComponent.getNewCommentElement());
   };
 
+  shakePopupControls = () => {
+    this.#popupComponent.shakeElement(this.#popupComponent.getControlsElement());
+  };
+
   shakePopupDeletingComment = (commentId) => {
     const commentElement = this.#popupComponent.getCommentElement(commentId);
     this.#popupComponent.shakeElement(commentElement);
@@ -181,6 +185,10 @@ export default class CardPresenter {
 
   updateCardCommentsAfterAdd = () => {
     this.#popupComponent.updateAfterAddComment();
+  };
+
+  updateFilmControlsAfterUpdate = (filmData) => {
+    this.#popupComponent.updateAfterUpdateFilm(filmData);
   };
 
   updateCardCommentsAfterDelete = (comment) => {

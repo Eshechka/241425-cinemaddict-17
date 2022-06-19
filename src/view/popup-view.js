@@ -1,4 +1,7 @@
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+dayjs.extend(relativeTime);
+
 import he from 'he';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 
@@ -31,7 +34,8 @@ const createTemplateCommentList = ({ id, emojiName, text, author, date }, isComm
       <p class="film-details__comment-text">${he.encode(text)}</p>
       <p class="film-details__comment-info">
         <span class="film-details__comment-author">${author}</span>
-        <span class="film-details__comment-day">${dayjs(date).format('YYYY/MM/DD hh:mm')}</span>
+        <span class="film-details__comment-day">${dayjs(date).fromNow()}</span>
+
         <button ${isCommentDeleting ? 'disabled' : ''} class="film-details__comment-delete">${isCommentDeleting ? 'Deleting...' : 'Delete'}</button>
       </p>
     </div>
@@ -240,12 +244,6 @@ export default class PopupView extends AbstractStatefulView {
     this._callback.toggleControl(e, type);
 
     this.#setScrollPage(this._state.scrollPos);
-
-    const userDetailsState = { ...this._state.userDetails };
-    userDetailsState[type] = !userDetailsState[type];
-    this.updateElement({
-      userDetails: userDetailsState,
-    });
   };
 
   setClickDeleteHandler = (callback) => {
@@ -302,6 +300,13 @@ export default class PopupView extends AbstractStatefulView {
         });
       }
     }
+  };
+
+  updateAfterUpdateFilm = (filmData) => {
+    const userDetailsState = { ...filmData.userDetails };
+    this.updateElement({
+      userDetails: userDetailsState,
+    });
   };
 
   updateAfterAddComment = () => {
@@ -396,5 +401,6 @@ export default class PopupView extends AbstractStatefulView {
   #getCommentListElement = () => this.element.querySelector('.film-details__comments-list');
   getCommentElement = (commentId) => this.element.querySelector(`[data-id='${commentId}']`);
   getNewCommentElement = () => this.element.querySelector('.film-details__new-comment');
+  getControlsElement = () => this.element.querySelector('.film-details__controls');
 
 }
