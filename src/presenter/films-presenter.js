@@ -1,4 +1,5 @@
 import { render, remove, RenderPosition, replace } from '../framework/render.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 import { sortRating, sortDate } from '../helpers/common.js';
 
 import FilmsView from '../view/films-view.js';
@@ -17,6 +18,10 @@ const EMPTY_TITLES = {
   'already_watched': 'There are no watched movies now',
   'favorite': 'There are no favorite movies now',
 };
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
 
 export default class FilmsPresenter {
   #films = [];
@@ -34,6 +39,8 @@ export default class FilmsPresenter {
   #showMoreAllFilmsBtnComponent = null;
   #sortComponent = null;
   #loadingComponent = new LoadingView();
+
+  #uiBlocker = new UiBlocker(TimeLimit.LOWER_LIMIT, TimeLimit.UPPER_LIMIT);
 
   #sortingMode = 'default';
   #filterType = 'all';
@@ -219,18 +226,42 @@ export default class FilmsPresenter {
     render(this.#loadingComponent, this.#filmsContainer, RenderPosition.BEFOREEND);
   };
 
-  #handleViewAction = (typeAction, changed) => {
+  #handleViewAction = async (typeAction, changed) => {
+    this.#uiBlocker.block();
+
     switch (typeAction) {
       case 'UPDATE_FILM':
-        this.#filmsModel.updateFilm(changed);//updatedFilm
+        try {
+          await this.#filmsModel.updateFilm(changed);//updatedFilm
+        } catch (error) {
+          // находим этот cardPresenter
+          const cardAll = this.#cardPresenterAll.get(changed.id);
+          cardAll.cardComponentShake();
+        }
         break;
       case 'ADD_COMMENT':
-        this.#commentsModel.addComment(changed);//addedComment
+        try {
+          await this.#commentsModel.addComment(changed);//addedComment
+        } catch (error) {
+          // находим этот cardPresenter
+          const cardAll = this.#cardPresenterAll.get(changed.filmId);
+          cardAll.shakePopupAddFormComment();
+        }
         break;
       case 'DELETE_COMMENT':
-        this.#commentsModel.deleteComment(changed);//deletedComment
+        try {
+          await this.#commentsModel.deleteComment(changed);//deletedComment
+        } catch (error) {
+          // находим этот cardPresenter
+          const cardAll = this.#cardPresenterAll.get(changed.filmId);
+          changed.fail = true;
+          cardAll.updateCardCommentsAfterDelete(changed);
+
+          cardAll.shakePopupDeletingComment(changed.id);
+        }
         break;
     }
+    this.#uiBlocker.unblock();
   };
 
   #handleModelEvent = (updateType, data) => {

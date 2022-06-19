@@ -166,6 +166,19 @@ export default class CardPresenter {
 
   };
 
+  shakePopupAddFormComment = () => {
+    this.#popupComponent.shakeElement(this.#popupComponent.getNewCommentElement());
+  };
+
+  shakePopupDeletingComment = (commentId) => {
+    const commentElement = this.#popupComponent.getCommentElement(commentId);
+    this.#popupComponent.shakeElement(commentElement);
+  };
+
+  cardComponentShake = () => {
+    this.#cardComponent.shake(() => { });
+  };
+
   updateCardCommentsAfterAdd = () => {
     this.#popupComponent.updateAfterAddComment();
   };
