@@ -1,6 +1,6 @@
 import { render, remove, RenderPosition, replace } from '../framework/render.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
-import { sortRating, sortDate } from '../helpers/common.js';
+import { sortRating, sortDate, getRandomInteger } from '../helpers/common.js';
 
 import FilmsView from '../view/films-view.js';
 import FilmsListView from '../view/films-list-view.js';
@@ -48,6 +48,7 @@ export default class FilmsPresenter {
   #filterType = 'all';
 
   #isLoading = true;
+  #updateFilmFrom = null;
 
   #cardPresenterAll = new Map();
   #cardPresenterTopRated = new Map();
@@ -70,7 +71,7 @@ export default class FilmsPresenter {
     this.#mostCommentedFilmsComponent = new FilmsListView('Most commented', false, true);
     this.#showMoreAllFilmsBtnComponent = new ShowMoreBtnView();
     this.#sortComponent = new SortView();
-    this.#popupComponent = new PopupPresenter(this.#handleViewAction, this.#commentsModel);
+    this.#popupComponent = new PopupPresenter(this.#handleViewAction);
 
     this.#filmsModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
@@ -95,6 +96,32 @@ export default class FilmsPresenter {
 
     return filteredFilms;
   }
+
+  get topRatedFilms() {
+    if (!this.#filmsModel.films.length) {
+      return [];
+    }
+    const topRatedFilms = [...this.#filmsModel.films].sort(sortRating);
+
+    // у всех рейтинг 0, не отображаем фильмы
+    if (!topRatedFilms[0].film_info.rating) {
+      return [];
+    }
+    // только один фильм, возвращаем его
+    if (topRatedFilms.length === 1) {
+      return [];
+    }
+    // у всех равный рейтинг, берем 2 случайных
+    if (topRatedFilms[0].film_info.rating === topRatedFilms[topRatedFilms.length - 1].film_info.rating) {
+      return [
+        ...topRatedFilms.splice(getRandomInteger(0, topRatedFilms.length - 1), 1),
+        ...topRatedFilms.splice(getRandomInteger(0, topRatedFilms.length - 1), 1)
+      ];
+    }
+
+    return topRatedFilms.slice(0, 2);
+  }
+
 
   #getFilteredFilms = (type = 'all', films = []) => {
     if (type === 'all') {
@@ -126,7 +153,7 @@ export default class FilmsPresenter {
     this.#renderFilmsComponent(this.#allFilmsComponent, this.#cardPresenterAll, this.films, this.#renderedAllCardsCount);
     this.#renderShowMoreBtn(this.#showMoreAllFilmsBtnComponent, this.#allFilmsComponent.element, this.#allFilmsComponent.getFilmsListContainer(), this.films, this.#cardPresenterAll, this.#renderedAllCardsCount);
 
-    this.#renderFilmsComponent(this.#topRatedFilmsComponent, this.#cardPresenterTopRated, [...this.#films], 2);
+    this.#renderFilmsComponent(this.#topRatedFilmsComponent, this.#cardPresenterTopRated, this.topRatedFilms, this.topRatedFilms.length);
 
     this.#renderFilmsComponent(this.#mostCommentedFilmsComponent, this.#cardPresenterMostCommented, [...this.#films], 2);
   };
@@ -233,6 +260,7 @@ export default class FilmsPresenter {
 
   #handleViewAction = async (typeAction, changed, from = null) => {
     this.#uiBlocker.block();
+    this.#updateFilmFrom = from;
 
     switch (typeAction) {
       case 'UPDATE_FILM':
@@ -303,11 +331,14 @@ export default class FilmsPresenter {
         this.#emptyFilmsComponent.setTitle(EMPTY_TITLES[data]);
         break;
       case 'UPDATE_FILM':
-        this.#popupComponent.updateFilmControlsAfterUpdate(data.userDetails);
+        if (this.#updateFilmFrom === 'popup') {
+          this.#popupComponent.updateFilmControlsAfterUpdate(data.userDetails);
+        }
+        this.#updateFilmFrom = null;
         // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким id, обновляем его
-        this.#rerenderMapElement(this.#cardPresenterAll.get(data.id), this.#popupComponent.getCardPopupData());
-        this.#rerenderMapElement(this.#cardPresenterTopRated.get(data.id), this.#popupComponent.getCardPopupData());
-        this.#rerenderMapElement(this.#cardPresenterMostCommented.get(data.id), this.#popupComponent.getCardPopupData());
+        this.#rerenderMapElement(this.#cardPresenterAll.get(data.id), data);
+        this.#rerenderMapElement(this.#cardPresenterTopRated.get(data.id), data);
+        this.#rerenderMapElement(this.#cardPresenterMostCommented.get(data.id), data);
 
         this.#setFilms();
 

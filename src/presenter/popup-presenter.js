@@ -8,16 +8,9 @@ export default class PopupPresenter {
 
   #handleViewAction = null;
 
-  #commentsModel = null;
-
   #cardInfo = null;
 
-  #isLoading = true;
-
-  constructor(handleViewAction, commentsModel) {
-
-    this.#commentsModel = commentsModel;
-
+  constructor(handleViewAction) {
     this.#handleViewAction = handleViewAction;
   }
 
