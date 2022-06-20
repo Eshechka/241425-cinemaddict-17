@@ -283,7 +283,7 @@ export default class PopupView extends AbstractStatefulView {
 
       e.preventDefault();
 
-      if (this._state.comment && this._state.showedEmojiName) {
+      if (this._state.comment && this._state.showedEmojiName) {// если и эмоция и текст предоставлены
 
         this.#setScrollPage(this._state.scrollPos);
 
@@ -302,15 +302,15 @@ export default class PopupView extends AbstractStatefulView {
     }
   };
 
-  updateAfterUpdateFilm = (filmData) => {
-    const userDetailsState = { ...filmData.userDetails };
+  updateAfterUpdateFilm = (userDetails) => {
     this.updateElement({
-      userDetails: userDetailsState,
+      userDetails: { ...userDetails },
     });
   };
 
-  updateAfterAddComment = () => {
+  updateAfterAddComment = (newComments) => {
     this.updateElement({
+      comments: newComments,
       comment: '',
       clickedEmoji: null,
       showedEmojiName: null,
@@ -320,17 +320,15 @@ export default class PopupView extends AbstractStatefulView {
     });
   };
 
-  updateAfterDeleteComment = (comment) => {
-    if (comment.fail) {
-      this.updateElement({
-        commentDeletingId: null,
-      });
-      return;
-    }
-    const newCommentsState = [...this._state.comments].filter((commentItem) => +commentItem.id !== +comment.id);
-
+  updateAfterFailureDeleteComment = () => {
     this.updateElement({
-      'comments': newCommentsState,
+      commentDeletingId: null,
+    });
+  };
+
+  updateAfterDeleteComment = (comments) => {
+    this.updateElement({
+      'comments': [...comments],
     });
   };
 

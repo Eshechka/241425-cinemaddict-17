@@ -10,6 +10,7 @@ import ShowMoreBtnView from '../view/show-more-btn-view.js';
 import EmptyFilmsListView from '../view/empty-films-list-view.js';
 import CardPresenter from './card-presenter.js';
 import SortView from '../view/sort-view.js';
+import PopupPresenter from './popup-presenter.js';
 
 const FILMS_AMOUNT = 5;
 const EMPTY_TITLES = {
@@ -38,6 +39,7 @@ export default class FilmsPresenter {
   #mostCommentedFilmsComponent = null;
   #showMoreAllFilmsBtnComponent = null;
   #sortComponent = null;
+  #popupComponent = null;
   #loadingComponent = new LoadingView();
 
   #uiBlocker = new UiBlocker(TimeLimit.LOWER_LIMIT, TimeLimit.UPPER_LIMIT);
@@ -46,8 +48,6 @@ export default class FilmsPresenter {
   #filterType = 'all';
 
   #isLoading = true;
-
-  #openedPopupCardPresenter = null;
 
   #cardPresenterAll = new Map();
   #cardPresenterTopRated = new Map();
@@ -70,6 +70,7 @@ export default class FilmsPresenter {
     this.#mostCommentedFilmsComponent = new FilmsListView('Most commented', false, true);
     this.#showMoreAllFilmsBtnComponent = new ShowMoreBtnView();
     this.#sortComponent = new SortView();
+    this.#popupComponent = new PopupPresenter(this.#handleViewAction, this.#commentsModel);
 
     this.#filmsModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
@@ -162,7 +163,7 @@ export default class FilmsPresenter {
     }
 
     for (let i = 0; i < cards.length; i++) {
-      const cardPresenter = new CardPresenter(container, this.#handleViewAction, this.#hidePopup, this.#commentsModel);
+      const cardPresenter = new CardPresenter(container, this.#handleViewAction, this.#initPopup, this.#commentsModel);
 
       // добавляем отрисованные cardPresenter-ы в cardPresenterMap
       cardPresenterMap.set(cards[i].id, cardPresenter);
@@ -226,6 +227,10 @@ export default class FilmsPresenter {
     render(this.#loadingComponent, this.#filmsContainer, RenderPosition.BEFOREEND);
   };
 
+  #initPopup = (cardInfo, isComments) => {
+    this.#popupComponent.init(cardInfo, isComments);
+  };
+
   #handleViewAction = async (typeAction, changed, from = null) => {
     this.#uiBlocker.block();
 
@@ -241,7 +246,7 @@ export default class FilmsPresenter {
               }
             });
           } else if (from === 'popup') {
-            this.#openedPopupCardPresenter.shakePopupControls();
+            this.#popupComponent.shakePopupControls();
           }
         }
         break;
@@ -249,17 +254,15 @@ export default class FilmsPresenter {
         try {
           await this.#commentsModel.addComment(changed);//addedComment
         } catch (error) {
-          this.#openedPopupCardPresenter.shakePopupAddFormComment();
+          this.#popupComponent.shakePopupAddFormComment();
         }
         break;
       case 'DELETE_COMMENT':
         try {
           await this.#commentsModel.deleteComment(changed);//deletedComment
         } catch (error) {
-          changed.fail = true;
-          this.#openedPopupCardPresenter.updateCardCommentsAfterDelete(changed);
-
-          this.#openedPopupCardPresenter.shakePopupDeletingComment(changed.id);
+          this.#popupComponent.updateCardCommentsAfterFailureDelete();
+          this.#popupComponent.shakePopupDeletingComment(changed.id);
         }
         break;
     }
@@ -267,11 +270,6 @@ export default class FilmsPresenter {
   };
 
   #handleModelEvent = (updateType, data) => {
-    const cardAll = data && data.filmId ? this.#cardPresenterAll.get(data.filmId) : null;
-    const cardTopRated = data && data.filmId ? this.#cardPresenterTopRated.get(data.filmId) : null;
-    const cardMostCommented = data && data.filmId ? this.#cardPresenterMostCommented.get(data.filmId) : null;
-    const cardData = cardAll ? cardAll.getCardData() : null;
-
     switch (updateType) {
       case 'INIT':
         this.#isLoading = false;
@@ -288,8 +286,8 @@ export default class FilmsPresenter {
         this.#renderFilms();
         break;
       case 'GET_FILM_COMMENTS':
-        if (data) {
-          cardAll.updateCardComments(data.comments);
+        if (data.comments) {//если комменты не удалось обновить, они будут null
+          this.#initPopup(data, true);
         }
         break;
       case 'UPDATE_FILTER':
@@ -305,13 +303,13 @@ export default class FilmsPresenter {
         this.#emptyFilmsComponent.setTitle(EMPTY_TITLES[data]);
         break;
       case 'UPDATE_FILM':
+        this.#popupComponent.updateFilmControlsAfterUpdate(data.userDetails);
         // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким id, обновляем его
-        this.#rerenderMapElement(this.#cardPresenterAll.get(data.id), data);
-        this.#rerenderMapElement(this.#cardPresenterTopRated.get(data.id), data);
-        this.#rerenderMapElement(this.#cardPresenterMostCommented.get(data.id), data);
-        this.#setFilms();
+        this.#rerenderMapElement(this.#cardPresenterAll.get(data.id), this.#popupComponent.getCardPopupData());
+        this.#rerenderMapElement(this.#cardPresenterTopRated.get(data.id), this.#popupComponent.getCardPopupData());
+        this.#rerenderMapElement(this.#cardPresenterMostCommented.get(data.id), this.#popupComponent.getCardPopupData());
 
-        this.#openedPopupCardPresenter.updateFilmControlsAfterUpdate(data);
+        this.#setFilms();
 
         if (this.#filterType !== 'all') {
           this.#clearFilmList(this.#cardPresenterAll, this.#showMoreAllFilmsBtnComponent);
@@ -321,42 +319,23 @@ export default class FilmsPresenter {
         this.#emptyFilmsComponent.setTitle(EMPTY_TITLES[this.#filterType]);
         break;
       case 'ADD_COMMENT':
+        this.#popupComponent.updatePopupCardCommentsAfterAdd(data);
         // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким filmId, обновляем его
-        if (cardAll) {
-          cardData.comments.push(data);
-          this.#rerenderMapElement(cardAll, cardData);
-          this.#rerenderMapElement(cardTopRated, cardData);
-          this.#rerenderMapElement(cardMostCommented, cardData);
-
-          cardAll.updateCardCommentsAfterAdd();
-        }
+        this.#rerenderMapElement(this.#cardPresenterAll.get(this.#popupComponent.getCardPopupData().id), this.#popupComponent.getCardPopupData());
+        this.#rerenderMapElement(this.#cardPresenterTopRated.get(this.#popupComponent.getCardPopupData().id), this.#popupComponent.getCardPopupData());
+        this.#rerenderMapElement(this.#cardPresenterMostCommented.get(this.#popupComponent.getCardPopupData().id), this.#popupComponent.getCardPopupData());
 
         this.#setFilms();
         break;
       case 'DELETE_COMMENT':
+        this.#popupComponent.updateCardCommentsAfterDelete(data);
         // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким filmId, обновляем его
-        if (cardAll) {
-          cardData.comments = cardData.comments.filter((comment) => comment.id !== data.id);
-          this.#rerenderMapElement(cardAll, cardData);
-          this.#rerenderMapElement(cardTopRated, cardData);
-          this.#rerenderMapElement(cardMostCommented, cardData);
-
-          cardAll.updateCardCommentsAfterDelete(data);
-        }
+        this.#rerenderMapElement(this.#cardPresenterAll.get(this.#popupComponent.getCardPopupData().id), this.#popupComponent.getCardPopupData());
+        this.#rerenderMapElement(this.#cardPresenterTopRated.get(this.#popupComponent.getCardPopupData().id), this.#popupComponent.getCardPopupData());
+        this.#rerenderMapElement(this.#cardPresenterMostCommented.get(this.#popupComponent.getCardPopupData().id), this.#popupComponent.getCardPopupData());
 
         this.#setFilms();
         break;
-    }
-  };
-
-  #hidePopup = (cardpresenter) => {
-    if (this.#openedPopupCardPresenter) {
-      this.#openedPopupCardPresenter.destroyPopup();
-    }
-    if (cardpresenter) {
-      this.#openedPopupCardPresenter = cardpresenter;
-    } else {
-      this.#openedPopupCardPresenter = null;
     }
   };
 
