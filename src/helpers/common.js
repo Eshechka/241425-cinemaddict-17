@@ -24,6 +24,8 @@ const getWeightForNullDate = (dateA, dateB) => {
   return null;
 };
 
+export const sortCommentsAmount = (filmA, filmB) => filmB.comments.length - filmA.comments.length;
+
 export const sortRating = (filmA, filmB) => filmB.film_info.rating - filmA.film_info.rating;
 
 export const sortDate = (filmA, filmB) => {

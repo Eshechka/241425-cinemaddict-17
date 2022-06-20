@@ -1,6 +1,6 @@
 import { render, remove, RenderPosition, replace } from '../framework/render.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
-import { sortRating, sortDate, getRandomInteger } from '../helpers/common.js';
+import { sortRating, sortDate, getRandomInteger, sortCommentsAmount } from '../helpers/common.js';
 
 import FilmsView from '../view/films-view.js';
 import FilmsListView from '../view/films-list-view.js';
@@ -98,10 +98,10 @@ export default class FilmsPresenter {
   }
 
   get topRatedFilms() {
-    if (!this.#filmsModel.films.length) {
+    if (!this.#films.length) {
       return [];
     }
-    const topRatedFilms = [...this.#filmsModel.films].sort(sortRating);
+    const topRatedFilms = [...this.#films].sort(sortRating);
 
     // у всех рейтинг 0, не отображаем фильмы
     if (!topRatedFilms[0].film_info.rating) {
@@ -122,6 +122,30 @@ export default class FilmsPresenter {
     return topRatedFilms.slice(0, 2);
   }
 
+  get mostCommentedFilms() {
+    if (!this.#films.length) {
+      return [];
+    }
+    const mostCommentedFilms = [...this.#films].sort(sortCommentsAmount);
+
+    // у всех фильмов 0 комментариев, не отображаем фильмы
+    if (!mostCommentedFilms[0].film_info.rating) {
+      return [];
+    }
+    // только один фильм c комментариями, возвращаем его
+    if (mostCommentedFilms.length === 1) {
+      return [];
+    }
+    // у всех равное число комментариев, берем 2 случайных фильма
+    if (mostCommentedFilms[0].comments.length === mostCommentedFilms[mostCommentedFilms.length - 1].comments.length) {
+      return [
+        ...mostCommentedFilms.splice(getRandomInteger(0, mostCommentedFilms.length - 1), 1),
+        ...mostCommentedFilms.splice(getRandomInteger(0, mostCommentedFilms.length - 1), 1)
+      ];
+    }
+
+    return mostCommentedFilms.slice(0, 2);
+  }
 
   #getFilteredFilms = (type = 'all', films = []) => {
     if (type === 'all') {
@@ -132,8 +156,26 @@ export default class FilmsPresenter {
   };
 
   // Обновляет данные фильма
-  #setFilms = () => {
-    this.#films = this.#filmsModel.films;
+  #setFilms = (filmData = null) => {
+    if (!this.#films || !this.#films.length) {
+      this.#films = this.#filmsModel.films;
+      return;
+    }
+    if (!filmData) {
+      return;
+    }
+
+    const ndx = this.#films.findIndex((film) => film.id === filmData.id);
+
+    if (ndx === -1) {
+      return;
+    }
+
+    this.#films = [
+      ...this.#films.slice(0, ndx),
+      filmData,
+      ...this.#films.slice(ndx + 1),
+    ];
   };
 
   #renderSorting = () => {
@@ -155,7 +197,7 @@ export default class FilmsPresenter {
 
     this.#renderFilmsComponent(this.#topRatedFilmsComponent, this.#cardPresenterTopRated, this.topRatedFilms, this.topRatedFilms.length);
 
-    this.#renderFilmsComponent(this.#mostCommentedFilmsComponent, this.#cardPresenterMostCommented, [...this.#films], 2);
+    this.#renderFilmsComponent(this.#mostCommentedFilmsComponent, this.#cardPresenterMostCommented, this.mostCommentedFilms, this.mostCommentedFilms.length);
   };
 
   // рендерит компоненты списка фильмов
@@ -340,7 +382,7 @@ export default class FilmsPresenter {
         this.#rerenderMapElement(this.#cardPresenterTopRated.get(data.id), data);
         this.#rerenderMapElement(this.#cardPresenterMostCommented.get(data.id), data);
 
-        this.#setFilms();
+        this.#setFilms(data);
 
         if (this.#filterType !== 'all') {
           this.#clearFilmList(this.#cardPresenterAll, this.#showMoreAllFilmsBtnComponent);
@@ -351,23 +393,27 @@ export default class FilmsPresenter {
         break;
       case 'ADD_COMMENT':
         this.#popupComponent.updatePopupCardCommentsAfterAdd(data);
-        // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким filmId, обновляем его
-        this.#rerenderMapElement(this.#cardPresenterAll.get(this.#popupComponent.getCardPopupData().id), this.#popupComponent.getCardPopupData());
-        this.#rerenderMapElement(this.#cardPresenterTopRated.get(this.#popupComponent.getCardPopupData().id), this.#popupComponent.getCardPopupData());
-        this.#rerenderMapElement(this.#cardPresenterMostCommented.get(this.#popupComponent.getCardPopupData().id), this.#popupComponent.getCardPopupData());
+        this.#rerenderFilmComponents(this.#popupComponent.getCardPopupData());
 
-        this.#setFilms();
         break;
       case 'DELETE_COMMENT':
         this.#popupComponent.updateCardCommentsAfterDelete(data);
-        // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким filmId, обновляем его
-        this.#rerenderMapElement(this.#cardPresenterAll.get(this.#popupComponent.getCardPopupData().id), this.#popupComponent.getCardPopupData());
-        this.#rerenderMapElement(this.#cardPresenterTopRated.get(this.#popupComponent.getCardPopupData().id), this.#popupComponent.getCardPopupData());
-        this.#rerenderMapElement(this.#cardPresenterMostCommented.get(this.#popupComponent.getCardPopupData().id), this.#popupComponent.getCardPopupData());
+        this.#rerenderFilmComponents(this.#popupComponent.getCardPopupData());
 
-        this.#setFilms();
         break;
     }
+  };
+
+  #rerenderFilmComponents = (updatedCardData) => {
+    // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким filmId, обновляем его
+    [this.#cardPresenterAll, this.#cardPresenterTopRated, this.#cardPresenterMostCommented].forEach((presenterSet) => {
+      this.#rerenderMapElement(presenterSet.get(updatedCardData.id), updatedCardData);
+    });
+
+    this.#setFilms(updatedCardData);
+    // удаляем все презентеры карточек фильмов и очищаем мап
+    this.#clearFilmList(this.#cardPresenterMostCommented);
+    this.#renderFilmsComponent(this.#mostCommentedFilmsComponent, this.#cardPresenterMostCommented, this.mostCommentedFilms, this.mostCommentedFilms.length, RenderPosition.BEFOREEND);
   };
 
 }
