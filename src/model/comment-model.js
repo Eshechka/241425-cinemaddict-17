@@ -9,17 +9,17 @@ export default class CommentModel extends Observable {
     this.#filmsApiService = filmsApiService;
   }
 
-  init = async (filmId) => {
+  init = async (film) => {
     try {
-      const comments = await this.#filmsApiService.getComments(filmId);
+      const comments = await this.#filmsApiService.getComments(film.id);
       this.comments = comments.map(this.#adaptToClient);
     } catch (err) {
       this.comments = null;
     }
 
-    const filmComments = this.comments ? { filmId: filmId, comments: [...this.comments] } : null;
+    const newFilm = { ...film, comments: this.comments };
 
-    this._notify('GET_FILM_COMMENTS', filmComments);
+    this._notify('GET_FILM_COMMENTS', newFilm);
   };
 
   #adaptToClient = (comment) => {
@@ -75,7 +75,7 @@ export default class CommentModel extends Observable {
         ...this.comments.slice(ndx + 1),
       ];
 
-      this._notify('DELETE_COMMENT', deletedComment);
+      this._notify('DELETE_COMMENT', this.comments);
     } catch (err) {
       throw new Error('Can\'t delete comment');
     }

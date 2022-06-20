@@ -25,6 +25,7 @@ export default class MainPresenter {
   #filterModel = new FiltertModel();
 
   #titleViewComponent = new TitleView();
+  #statisticsViewComponent = new StatisticsView();
 
   init = () => {
 
@@ -36,7 +37,7 @@ export default class MainPresenter {
 
     this.#filmsModel.init();
 
-    render(new StatisticsView(this.#filmsModel.films.length), siteFooterStatisticsElement);
+    render(this.#statisticsViewComponent, siteFooterStatisticsElement);
 
     this.#filmsModel.addObserver(this.#handleModelEvent);
   };
@@ -44,12 +45,17 @@ export default class MainPresenter {
   #handleModelEvent = (updateType, data) => {
     // запоминаем предыдущий cardComponent
     const prevTitleViewComponent = this.#titleViewComponent;
+    const prevStatisticsViewComponent = this.#statisticsViewComponent;
 
     switch (updateType) {
       case 'INIT':
         this.#titleViewComponent = new TitleView(this.#countWatched(data));
         // заменяем разметку
         replace(this.#titleViewComponent, prevTitleViewComponent);
+
+        this.#statisticsViewComponent = new StatisticsView(data.length);
+        // заменяем разметку
+        replace(this.#statisticsViewComponent, prevStatisticsViewComponent);
         break;
       case 'UPDATE_FILM':
         this.#titleViewComponent = new TitleView(this.#countWatched(this.#filmsModel.films));
