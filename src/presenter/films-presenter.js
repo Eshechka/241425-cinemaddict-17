@@ -226,7 +226,7 @@ export default class FilmsPresenter {
     render(this.#loadingComponent, this.#filmsContainer, RenderPosition.BEFOREEND);
   };
 
-  #handleViewAction = async (typeAction, changed) => {
+  #handleViewAction = async (typeAction, changed, from = null) => {
     this.#uiBlocker.block();
 
     switch (typeAction) {
@@ -234,30 +234,32 @@ export default class FilmsPresenter {
         try {
           await this.#filmsModel.updateFilm(changed);//updatedFilm
         } catch (error) {
-          // находим этот cardPresenter
-          const cardAll = this.#cardPresenterAll.get(changed.id);
-          cardAll.cardComponentShake();
+          if (from === 'card') {
+            [this.#cardPresenterAll, this.#cardPresenterTopRated, this.#cardPresenterMostCommented].forEach((presenterSet) => {
+              if (presenterSet.has(changed.id)) {
+                presenterSet.get(changed.id).cardComponentShake();
+              }
+            });
+          } else if (from === 'popup') {
+            this.#openedPopupCardPresenter.shakePopupControls();
+          }
         }
         break;
       case 'ADD_COMMENT':
         try {
           await this.#commentsModel.addComment(changed);//addedComment
         } catch (error) {
-          // находим этот cardPresenter
-          const cardAll = this.#cardPresenterAll.get(changed.filmId);
-          cardAll.shakePopupAddFormComment();
+          this.#openedPopupCardPresenter.shakePopupAddFormComment();
         }
         break;
       case 'DELETE_COMMENT':
         try {
           await this.#commentsModel.deleteComment(changed);//deletedComment
         } catch (error) {
-          // находим этот cardPresenter
-          const cardAll = this.#cardPresenterAll.get(changed.filmId);
           changed.fail = true;
-          cardAll.updateCardCommentsAfterDelete(changed);
+          this.#openedPopupCardPresenter.updateCardCommentsAfterDelete(changed);
 
-          cardAll.shakePopupDeletingComment(changed.id);
+          this.#openedPopupCardPresenter.shakePopupDeletingComment(changed.id);
         }
         break;
     }
@@ -309,6 +311,8 @@ export default class FilmsPresenter {
         this.#rerenderMapElement(this.#cardPresenterMostCommented.get(data.id), data);
         this.#setFilms();
 
+        this.#openedPopupCardPresenter.updateFilmControlsAfterUpdate(data);
+
         if (this.#filterType !== 'all') {
           this.#clearFilmList(this.#cardPresenterAll, this.#showMoreAllFilmsBtnComponent);
           this.#renderFilmsComponent(this.#allFilmsComponent, this.#cardPresenterAll, this.films, this.#renderedAllCardsCount, RenderPosition.AFTERBEGIN);
@@ -328,7 +332,6 @@ export default class FilmsPresenter {
         }
 
         this.#setFilms();
-
         break;
       case 'DELETE_COMMENT':
         // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким filmId, обновляем его
@@ -350,7 +353,11 @@ export default class FilmsPresenter {
     if (this.#openedPopupCardPresenter) {
       this.#openedPopupCardPresenter.destroyPopup();
     }
-    this.#openedPopupCardPresenter = cardpresenter;
+    if (cardpresenter) {
+      this.#openedPopupCardPresenter = cardpresenter;
+    } else {
+      this.#openedPopupCardPresenter = null;
+    }
   };
 
 }
