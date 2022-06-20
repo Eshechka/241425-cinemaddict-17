@@ -1,9 +1,10 @@
 import dayjs from 'dayjs';
 
 import AbstractView from '../framework/view/abstract-view.js';
+import { FilterType } from '../helpers/common.js';
 
 
-const createTemplate = ({ film_info: { title = '', rating = '', release = {}, duration = '', genre = [], imgSrc = '', description = '' }, userDetails = {}, comments = [] }) => `
+const createTemplate = ({ filmInfo: { title = '', rating = '', release = {}, duration = '', genre = [], imgSrc = '', description = '' }, userDetails = {}, comments = [] }) => `
 <article class="film-card">
   <a class="film-card__link">
     <h3 class="film-card__title">${title}</h3>
@@ -19,7 +20,7 @@ const createTemplate = ({ film_info: { title = '', rating = '', release = {}, du
   </a>
   <div class="film-card__controls">
     <button class="film-card__controls-item film-card__controls-item--add-to-watchlist ${userDetails.watchlist ? 'film-card__controls-item--active' : ''}" type="button">Add to watchlist</button>
-    <button class="film-card__controls-item film-card__controls-item--mark-as-watched ${userDetails.already_watched ? 'film-card__controls-item--active' : ''}" type="button">Mark as watched</button>
+    <button class="film-card__controls-item film-card__controls-item--mark-as-watched ${userDetails.alreadyWatched ? 'film-card__controls-item--active' : ''}" type="button">Mark as watched</button>
     <button class="film-card__controls-item film-card__controls-item--favorite ${userDetails.favorite ? 'film-card__controls-item--active' : ''}" type="button">Mark as favorite</button>
   </div>
 </article>
@@ -51,9 +52,9 @@ export default class FilmCardView extends AbstractView {
 
   setToggleControlHandler = (callback) => {
     this._callback.toggleControl = callback;
-    this.#getWatchlistElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'watchlist'));
-    this.#getWatchedElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'already_watched'));
-    this.#getFavoriteElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'favorite'));
+    this.#getWatchlistElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, FilterType.WATCHLIST));
+    this.#getWatchedElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, FilterType.HISTORY));
+    this.#getFavoriteElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, FilterType.FAVORITE));
   };
 
   #clickToggleControlHandler = (e, type) => {

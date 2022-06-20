@@ -1,6 +1,6 @@
 import { render, remove, RenderPosition, replace } from '../framework/render.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
-import { sortRating, sortDate, getRandomInteger, sortCommentsAmount } from '../helpers/common.js';
+import { sortRating, sortDate, getRandomInteger, sortCommentsAmount, UserAction, UpdateType, FilterType, SortType } from '../helpers/common.js';
 
 import FilmsView from '../view/films-view.js';
 import FilmsListView from '../view/films-list-view.js';
@@ -16,12 +16,16 @@ const FILMS_AMOUNT = 5;
 const EMPTY_TITLES = {
   'all': 'There are no movies in our database',
   'watchlist': 'There are no movies to watch now',
-  'already_watched': 'There are no watched movies now',
+  'alreadyWatched': 'There are no watched movies now',
   'favorite': 'There are no favorite movies now',
 };
 const TimeLimit = {
   LOWER_LIMIT: 350,
   UPPER_LIMIT: 1000,
+};
+const ActionFrom = {
+  POPUP: 'popup',
+  CARD: 'card',
 };
 
 export default class FilmsPresenter {
@@ -44,8 +48,8 @@ export default class FilmsPresenter {
 
   #uiBlocker = new UiBlocker(TimeLimit.LOWER_LIMIT, TimeLimit.UPPER_LIMIT);
 
-  #sortingMode = 'default';
-  #filterType = 'all';
+  #sortingMode = SortType.DEFAULT;
+  #filterType = FilterType.ALL;
 
   #isLoading = true;
   #updateFilmFrom = null;
@@ -88,9 +92,9 @@ export default class FilmsPresenter {
     const filteredFilms = this.#getFilteredFilms(this.#filterType, [...this.#films]);
 
     switch (this.#sortingMode) {
-      case 'date':
+      case SortType.DATE:
         return filteredFilms.sort(sortDate);
-      case 'rating':
+      case SortType.RATING:
         return filteredFilms.sort(sortRating);
     }
 
@@ -104,7 +108,7 @@ export default class FilmsPresenter {
     const topRatedFilms = [...this.#films].sort(sortRating);
 
     // у всех рейтинг 0, не отображаем фильмы
-    if (!topRatedFilms[0].film_info.rating) {
+    if (!topRatedFilms[0].filmInfo.rating) {
       return [];
     }
     // только один фильм, возвращаем его
@@ -112,7 +116,7 @@ export default class FilmsPresenter {
       return [];
     }
     // у всех равный рейтинг, берем 2 случайных
-    if (topRatedFilms[0].film_info.rating === topRatedFilms[topRatedFilms.length - 1].film_info.rating) {
+    if (topRatedFilms[0].filmInfo.rating === topRatedFilms[topRatedFilms.length - 1].filmInfo.rating) {
       return [
         ...topRatedFilms.splice(getRandomInteger(0, topRatedFilms.length - 1), 1),
         ...topRatedFilms.splice(getRandomInteger(0, topRatedFilms.length - 1), 1)
@@ -129,7 +133,7 @@ export default class FilmsPresenter {
     const mostCommentedFilms = [...this.#films].sort(sortCommentsAmount);
 
     // у всех фильмов 0 комментариев, не отображаем фильмы
-    if (!mostCommentedFilms[0].film_info.rating) {
+    if (!mostCommentedFilms[0].filmInfo.rating) {
       return [];
     }
     // только один фильм c комментариями, возвращаем его
@@ -147,8 +151,8 @@ export default class FilmsPresenter {
     return mostCommentedFilms.slice(0, 2);
   }
 
-  #getFilteredFilms = (type = 'all', films = []) => {
-    if (type === 'all') {
+  #getFilteredFilms = (type = FilterType.ALL, films = []) => {
+    if (type === FilterType.ALL) {
       return films;
     }
 
@@ -305,29 +309,29 @@ export default class FilmsPresenter {
     this.#updateFilmFrom = from;
 
     switch (typeAction) {
-      case 'UPDATE_FILM':
+      case UserAction.UPDATE_FILM:
         try {
           await this.#filmsModel.updateFilm(changed);//updatedFilm
         } catch (error) {
-          if (from === 'card') {
+          if (from === ActionFrom.CARD) {
             [this.#cardPresenterAll, this.#cardPresenterTopRated, this.#cardPresenterMostCommented].forEach((presenterSet) => {
               if (presenterSet.has(changed.id)) {
                 presenterSet.get(changed.id).cardComponentShake();
               }
             });
-          } else if (from === 'popup') {
+          } else if (from === ActionFrom.POPUP) {
             this.#popupComponent.shakePopupControls();
           }
         }
         break;
-      case 'ADD_COMMENT':
+      case UserAction.ADD_COMMENT:
         try {
           await this.#commentsModel.addComment(changed);//addedComment
         } catch (error) {
           this.#popupComponent.shakePopupAddFormComment();
         }
         break;
-      case 'DELETE_COMMENT':
+      case UserAction.DELETE_COMMENT:
         try {
           await this.#commentsModel.deleteComment(changed);//deletedComment
         } catch (error) {
@@ -339,9 +343,9 @@ export default class FilmsPresenter {
     this.#uiBlocker.unblock();
   };
 
-  #handleModelEvent = (updateType, data) => {
-    switch (updateType) {
-      case 'INIT':
+  #handleModelEvent = (updatedType, data) => {
+    switch (updatedType) {
+      case UpdateType.INIT:
         this.#isLoading = false;
         remove(this.#loadingComponent);
 
@@ -355,14 +359,14 @@ export default class FilmsPresenter {
 
         this.#renderFilms();
         break;
-      case 'GET_FILM_COMMENTS':
+      case UpdateType.GET_FILM_COMMENTS:
         if (data.comments) {//если комменты не удалось обновить, они будут null
           this.#initPopup(data, true);
         }
         break;
-      case 'UPDATE_FILTER':
+      case UpdateType.UPDATE_FILTER:
         // убираем сортировку
-        this.#sortingMode = 'default';
+        this.#sortingMode = SortType.DEFAULT;
         this.#sortComponent.setActiveSortingElement(this.#sortingMode);
 
         // удаляем все презентеры карточек фильмов и очищаем мап
@@ -372,8 +376,8 @@ export default class FilmsPresenter {
 
         this.#emptyFilmsComponent.setTitle(EMPTY_TITLES[data]);
         break;
-      case 'UPDATE_FILM':
-        if (this.#updateFilmFrom === 'popup') {
+      case UpdateType.UPDATE_FILM:
+        if (this.#updateFilmFrom === ActionFrom.POPUP) {
           this.#popupComponent.updateFilmControlsAfterUpdate(data.userDetails);
         }
         this.#updateFilmFrom = null;
@@ -384,19 +388,19 @@ export default class FilmsPresenter {
 
         this.#setFilms(data);
 
-        if (this.#filterType !== 'all') {
+        if (this.#filterType !== FilterType.ALL) {
           this.#clearFilmList(this.#cardPresenterAll, this.#showMoreAllFilmsBtnComponent);
           this.#renderFilmsComponent(this.#allFilmsComponent, this.#cardPresenterAll, this.films, this.#renderedAllCardsCount, RenderPosition.AFTERBEGIN);
           this.#renderShowMoreBtn(this.#showMoreAllFilmsBtnComponent, this.#allFilmsComponent.element, this.#allFilmsComponent.getFilmsListContainer(), this.films, this.#cardPresenterAll, this.#renderedAllCardsCount);
         }
         this.#emptyFilmsComponent.setTitle(EMPTY_TITLES[this.#filterType]);
         break;
-      case 'ADD_COMMENT':
+      case UpdateType.ADD_COMMENT:
         this.#popupComponent.updatePopupCardCommentsAfterAdd(data);
         this.#rerenderFilmComponents(this.#popupComponent.getCardPopupData());
 
         break;
-      case 'DELETE_COMMENT':
+      case UpdateType.DELETE_COMMENT:
         this.#popupComponent.updateCardCommentsAfterDelete(data);
         this.#rerenderFilmComponents(this.#popupComponent.getCardPopupData());
 

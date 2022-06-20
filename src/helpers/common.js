@@ -26,10 +26,40 @@ const getWeightForNullDate = (dateA, dateB) => {
 
 export const sortCommentsAmount = (filmA, filmB) => filmB.comments.length - filmA.comments.length;
 
-export const sortRating = (filmA, filmB) => filmB.film_info.rating - filmA.film_info.rating;
+export const sortRating = (filmA, filmB) => filmB.filmInfo.rating - filmA.filmInfo.rating;
 
 export const sortDate = (filmA, filmB) => {
-  const weight = getWeightForNullDate(filmB.film_info.release.date, filmA.film_info.release.date);
+  const weight = getWeightForNullDate(filmB.filmInfo.release.date, filmA.filmInfo.release.date);
 
-  return weight ?? dayjs(filmB.film_info.release.date).diff(dayjs(filmA.film_info.release.date));
+  return weight ?? dayjs(filmB.filmInfo.release.date).diff(dayjs(filmA.filmInfo.release.date));
 };
+
+// CONSTANTS
+export const FilterType = {
+  ALL: 'all',
+  WATCHLIST: 'watchlist',
+  HISTORY: 'alreadyWatched',
+  FAVORITE: 'favorite',
+};
+
+export const SortType = {
+  DEFAULT: 'default',
+  DATE: 'date',
+  RATING: 'rating',
+};
+
+export const UserAction = {
+  UPDATE_FILM: 'UPDATE_FILM',
+  ADD_COMMENT: 'ADD_COMMENT',
+  DELETE_COMMENT: 'DELETE_COMMENT',
+};
+
+export const UpdateType = {
+  INIT: 'INIT',
+  GET_FILM_COMMENTS: 'GET_FILM_COMMENTS',
+  UPDATE_FILTER: 'UPDATE_FILTER',
+  UPDATE_FILM: 'UPDATE_FILM',
+  ADD_COMMENT: 'ADD_COMMENT',
+  DELETE_COMMENT: 'DELETE_COMMENT',
+};
+

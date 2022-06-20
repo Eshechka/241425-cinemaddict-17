@@ -1,4 +1,5 @@
 import Observable from '../framework/observable.js';
+import { UpdateType } from '../helpers/common.js';
 
 export default class CommentModel extends Observable {
   #filmsApiService = null;
@@ -19,7 +20,7 @@ export default class CommentModel extends Observable {
 
     const newFilm = { ...film, comments: this.comments };
 
-    this._notify('GET_FILM_COMMENTS', newFilm);
+    this._notify(UpdateType.GET_FILM_COMMENTS, newFilm);
   };
 
   #adaptToClient = (comment) => {
@@ -55,7 +56,7 @@ export default class CommentModel extends Observable {
       newComment.filmId = data.movie.id;
       this.comments = [...this.comments, newComment];
 
-      this._notify('ADD_COMMENT', newComment);
+      this._notify(UpdateType.ADD_COMMENT, newComment);
     } catch (err) {
       throw new Error('Can\'t add comment');
     }
@@ -75,10 +76,11 @@ export default class CommentModel extends Observable {
         ...this.comments.slice(ndx + 1),
       ];
 
-      this._notify('DELETE_COMMENT', this.comments);
+      this._notify(UpdateType.DELETE_COMMENT, this.comments);
     } catch (err) {
       throw new Error('Can\'t delete comment');
     }
   };
 
 }
+

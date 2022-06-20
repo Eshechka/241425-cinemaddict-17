@@ -1,4 +1,5 @@
 import Observable from '../framework/observable.js';
+import { UpdateType } from '../helpers/common.js';
 
 export default class FilmModel extends Observable {
   #filmsApiService = null;
@@ -17,14 +18,14 @@ export default class FilmModel extends Observable {
       this.films = [];
     }
 
-    this._notify('INIT', this.films);
+    this._notify(UpdateType.INIT, this.films);
   };
 
 
   #adaptToClient = (film) => {
     const adaptedFilm = {
       ...film,
-      ['film_info']: {
+      filmInfo: {
         ...film.film_info,
         alternativeTitle: film.film_info['alternative_title'],
         rating: film.film_info['total_rating'],
@@ -32,16 +33,21 @@ export default class FilmModel extends Observable {
         ageRating: film.film_info['age_rating'],
         duration: film.film_info['runtime'],
       },
-      userDetails: film['user_details'],
+      userDetails: {
+        ...film['user_details'],
+        alreadyWatched: film.user_details.already_watched,
+      }
     };
 
     // Ненужные ключи мы удаляем
-    delete adaptedFilm.film_info['alternative_title'];
-    delete adaptedFilm.film_info['total_rating'];
-    delete adaptedFilm.film_info['poster'];
-    delete adaptedFilm.film_info['age_rating'];
-    delete adaptedFilm.film_info['runtime'];
+    delete adaptedFilm.filmInfo['alternative_title'];
+    delete adaptedFilm.filmInfo['total_rating'];
+    delete adaptedFilm.filmInfo['poster'];
+    delete adaptedFilm.filmInfo['age_rating'];
+    delete adaptedFilm.filmInfo['runtime'];
+    delete adaptedFilm.film_info;
     delete adaptedFilm['user_details'];
+    delete adaptedFilm.userDetails.already_watched;
 
     return adaptedFilm;
   };
@@ -70,9 +76,10 @@ export default class FilmModel extends Observable {
         ...this.films.slice(ndx + 1),
       ];
 
-      this._notify('UPDATE_FILM', newFilm);
+      this._notify(UpdateType.UPDATE_FILM, newFilm);
     } catch (err) {
       throw new Error('Can\'t update film');
     }
   };
 }
+

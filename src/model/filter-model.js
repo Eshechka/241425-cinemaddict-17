@@ -1,8 +1,9 @@
 import Observable from '../framework/observable.js';
+import { FilterType, UpdateType } from '../helpers/common.js';
 
 
 export default class FilterModel extends Observable {
-  #filter = 'all';
+  #filter = FilterType.ALL;
 
   get filter() {
     return this.#filter;
@@ -10,6 +11,6 @@ export default class FilterModel extends Observable {
 
   updateFilter = (updatedFilter) => {
     this.#filter = updatedFilter;
-    this._notify('UPDATE_FILTER', updatedFilter);
+    this._notify(UpdateType.UPDATE_FILTER, updatedFilter);
   };
 }

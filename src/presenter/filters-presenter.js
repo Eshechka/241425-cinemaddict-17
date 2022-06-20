@@ -1,4 +1,5 @@
 import { render, replace } from '../framework/render.js';
+import { FilterType, UpdateType } from '../helpers/common.js';
 
 import MainNavigationView from '../view/main-navigation-view.js';
 
@@ -10,7 +11,7 @@ export default class FiltersPresenter {
   #mainNavigationContainer = null;
   #mainNavigationComponent = null;
 
-  #currentFilter = 'all';
+  #currentFilter = FilterType.ALL;
 
   constructor(mainNavigationContainer, filmModel, filterModel) {
     this.#mainNavigationContainer = mainNavigationContainer;
@@ -39,9 +40,9 @@ export default class FiltersPresenter {
 
     return {
       'all': { text: 'All movies', count: films.length },
-      'watchlist': { text: 'Watchlist', count: this.#countFilter('watchlist', films) },
-      'already_watched': { text: 'History', count: this.#countFilter('already_watched', films) },
-      'favorite': { text: 'Favorites', count: this.#countFilter('favorite', films) },
+      'watchlist': { text: 'Watchlist', count: this.#countFilter(FilterType.WATCHLIST, films) },
+      'alreadyWatched': { text: 'History', count: this.#countFilter(FilterType.HISTORY, films) },
+      'favorite': { text: 'Favorites', count: this.#countFilter(FilterType.FAVORITE, films) },
     };
   }
 
@@ -56,18 +57,18 @@ export default class FiltersPresenter {
     this.#filterModel.updateFilter(updatedFilter);
   };
 
-  #handleModelEvent = (updateType, data) => {
+  #handleModelEvent = (updatedType, data) => {
     // запоминаем предыдущий cardComponent
     const prevMainNavigationComponent = this.#mainNavigationComponent;
 
-    switch (updateType) {
-      case 'INIT':
+    switch (updatedType) {
+      case UpdateType.INIT:
         this.#mainNavigationComponent = new MainNavigationView(this.filters);//data - none
         break;
-      case 'UPDATE_FILTER':
+      case UpdateType.UPDATE_FILTER:
         this.#mainNavigationComponent = new MainNavigationView(this.filters, data);//data - updatedFilter
         break;
-      case 'UPDATE_FILM':
+      case UpdateType.UPDATE_FILM:
         this.#mainNavigationComponent = new MainNavigationView(this.filters, this.#currentFilter);//data - updatedFilm
         break;
     }

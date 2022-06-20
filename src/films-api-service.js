@@ -22,14 +22,17 @@ export default class FilmsApiService extends ApiService {
     const adaptedFilm = {
       ...film,
       ['film_info']: {
-        ...film.film_info,
-        'alternative_title': film.film_info.alternativeTitle,
-        'total_rating': film.film_info.rating,
-        'poster': film.film_info.imgSrc,
-        'age_rating': film.film_info.ageRating,
-        'runtime': film.film_info.duration,
+        ...film.filmInfo,
+        'alternative_title': film.filmInfo.alternativeTitle,
+        'total_rating': film.filmInfo.rating,
+        'poster': film.filmInfo.imgSrc,
+        'age_rating': film.filmInfo.ageRating,
+        'runtime': film.filmInfo.duration,
       },
-      'user_details': film.userDetails,
+      'user_details': {
+        ...film.userDetails,
+        'already_watched': film.userDetails.alreadyWatched,
+      },
     };
 
     // Ненужные ключи мы удаляем
@@ -38,7 +41,9 @@ export default class FilmsApiService extends ApiService {
     delete adaptedFilm.film_info.imgSrc;
     delete adaptedFilm.film_info.ageRating;
     delete adaptedFilm.film_info.duration;
+    delete adaptedFilm.filmInfo;
     delete adaptedFilm.userDetails;
+    delete adaptedFilm.user_details.alreadyWatched;
 
     return adaptedFilm;
   };
@@ -93,3 +98,4 @@ export default class FilmsApiService extends ApiService {
     return response;
   };
 }
+

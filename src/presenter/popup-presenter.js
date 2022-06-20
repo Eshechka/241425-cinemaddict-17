@@ -1,4 +1,5 @@
 import { render, remove } from '../framework/render.js';
+import { FilterType, UserAction } from '../helpers/common.js';
 
 import PopupView from '../view/popup-view.js';
 
@@ -39,28 +40,20 @@ export default class PopupPresenter {
     render(this.#popupComponent, this.#popupContainer);
     this.#popupContainer.classList.add('hide-overflow');
 
-    const closePopupByEsc = (e) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        this.destroyPopup();
-        this.#popupContainer.removeEventListener('keydown', closePopupByEsc);
-      }
-    };
-
-    this.#popupContainer.addEventListener('keydown', closePopupByEsc);
+    this.#popupContainer.addEventListener('keydown', this.#closePopupByEsc);
 
     this.#popupComponent.setToggleControlHandler((_, type) => {
       // обновляем данные
       const newUserDetails = { ...this.#cardInfo.userDetails };
 
       switch (type) {
-        case 'watchlist':
+        case FilterType.WATCHLIST:
           newUserDetails.watchlist = !newUserDetails.watchlist;
           break;
-        case 'already_watched':
-          newUserDetails['already_watched'] = !newUserDetails['already_watched'];
+        case FilterType.HISTORY:
+          newUserDetails['alreadyWatched'] = !newUserDetails['alreadyWatched'];
           break;
-        case 'favorite':
+        case FilterType.FAVORITE:
           newUserDetails.favorite = !newUserDetails.favorite;
           break;
         default:
@@ -69,25 +62,35 @@ export default class PopupPresenter {
 
       // вызываем метод из film-presenter (с обновленными данными)
       const newCardInfo = Object.assign({}, { ...this.#cardInfo, userDetails: newUserDetails, comments: [] });
-      this.#handleViewAction('UPDATE_FILM', newCardInfo, 'popup');
+      this.#handleViewAction(UserAction.UPDATE_FILM, newCardInfo, 'popup');
     });
 
     this.#popupComponent.setSubmitAddCommentFormHandler((_, newComment) => {
-      this.#handleViewAction('ADD_COMMENT', newComment);
+      this.#handleViewAction(UserAction.ADD_COMMENT, newComment);
     });
 
     this.#popupComponent.setClickDeleteHandler((_, comment) => {
-      this.#handleViewAction('DELETE_COMMENT', comment);
+      this.#handleViewAction(UserAction.DELETE_COMMENT, comment);
     });
 
     this.#popupComponent.setCloseElementClickHandler(() => {
       this.destroyPopup();
-      this.#popupContainer.removeEventListener('keydown', closePopupByEsc);
+      this.#popupContainer.removeEventListener('keydown', this.#closePopupByEsc);
     });
+  };
+
+  #closePopupByEsc = (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      this.destroyPopup();
+      this.#popupContainer.removeEventListener('keydown', this.#closePopupByEsc);
+    }
   };
 
   destroyPopup = () => {
     // закрываем попап, очищаем this.#popupComponent
+    document.removeEventListener('keydown', this.#popupComponent.submitAddCommentFormHandler);
+    this.#popupContainer.removeEventListener('keydown', this.#closePopupByEsc);
     remove(this.#popupComponent);
     this.#popupComponent = null;
     this.#popupContainer.classList.remove('hide-overflow');

@@ -15,6 +15,7 @@ const siteMainElement = document.querySelector('.main');
 const siteFooterStatisticsElement = document.querySelector('.footer__statistics');
 
 import FilmsApiService from '../films-api-service.js';
+import { UpdateType } from '../helpers/common.js';
 
 const AUTHORIZATION = 'Basic li_du_sha_739';
 const END_POINT = 'https://17.ecmascript.pages.academy/cinemaddict';
@@ -48,7 +49,7 @@ export default class MainPresenter {
     const prevStatisticsViewComponent = this.#statisticsViewComponent;
 
     switch (updateType) {
-      case 'INIT':
+      case UpdateType.INIT:
         this.#titleViewComponent = new TitleView(this.#countWatched(data));
         // заменяем разметку
         replace(this.#titleViewComponent, prevTitleViewComponent);
@@ -57,7 +58,7 @@ export default class MainPresenter {
         // заменяем разметку
         replace(this.#statisticsViewComponent, prevStatisticsViewComponent);
         break;
-      case 'UPDATE_FILM':
+      case UpdateType.UPDATE_FILM:
         this.#titleViewComponent = new TitleView(this.#countWatched(this.#filmsModel.films));
         // заменяем разметку
         replace(this.#titleViewComponent, prevTitleViewComponent);
@@ -65,6 +66,6 @@ export default class MainPresenter {
     }
   };
 
-  #countWatched = (films) => films.reduce((sum, film) => sum + film.userDetails.already_watched, 0);
+  #countWatched = (films) => films.reduce((sum, film) => sum + film.userDetails.alreadyWatched, 0);
 
 }

@@ -1,4 +1,5 @@
 import { render, replace, remove } from '../framework/render.js';
+import { FilterType, UserAction } from '../helpers/common.js';
 
 import FilmCardView from '../view/film-card-view.js';
 
@@ -12,8 +13,6 @@ export default class CardPresenter {
   #commentsModel = null;
 
   #cardInfo = null;
-
-  #isLoading = true;
 
   constructor(cardsContainer, handleViewAction, initPopup, commentsModel) {
     this.#cardsContainer = cardsContainer;
@@ -49,13 +48,13 @@ export default class CardPresenter {
       const newUserDetails = { ...this.#cardInfo.userDetails };
 
       switch (type) {
-        case 'watchlist':
+        case FilterType.WATCHLIST:
           newUserDetails.watchlist = !newUserDetails.watchlist;
           break;
-        case 'already_watched':
-          newUserDetails['already_watched'] = !newUserDetails['already_watched'];
+        case FilterType.HISTORY:
+          newUserDetails['alreadyWatched'] = !newUserDetails['alreadyWatched'];
           break;
-        case 'favorite':
+        case FilterType.FAVORITE:
           newUserDetails.favorite = !newUserDetails.favorite;
           break;
         default:
@@ -63,7 +62,7 @@ export default class CardPresenter {
       }
 
       // вызываем метод из презентера films, который вызовет метод модели filmsModel (с обновленными данными)
-      this.#handleViewAction('UPDATE_FILM', { ...this.#cardInfo, userDetails: newUserDetails, comments: [] }, 'card');
+      this.#handleViewAction(UserAction.UPDATE_FILM, { ...this.#cardInfo, userDetails: newUserDetails, comments: [] }, 'card');
     });
   };
 
@@ -77,7 +76,6 @@ export default class CardPresenter {
   };
 
   updateCardComments = (newComments) => {
-    this.#isLoading = false;
 
     const updatedComments = this.#cardInfo.comments.map((commentId, ndx) =>
       ({ id: commentId, ...newComments[ndx] })

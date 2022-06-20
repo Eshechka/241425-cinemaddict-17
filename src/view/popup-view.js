@@ -4,6 +4,7 @@ dayjs.extend(relativeTime);
 
 import he from 'he';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import { FilterType } from '../helpers/common.js';
 
 
 const SHAKE_CLASS_NAME = 'shake';
@@ -89,7 +90,7 @@ const createTemplateNewComment = (commentAmount, clickedEmoji, showedEmojiName, 
 </section>
 `;
 
-const createTemplate = ({ film_info: { title = '', rating = '', duration = '', genre = [], imgSrc, description = '', alternativeTitle = '', ageRating = '', director = '', writers = [], actors = [], release = {} }, userDetails = {}, comments = null, clickedEmoji = null, showedEmojiName = null, comment = '', isFormDisabled = false, commentDeletingId = null }) => `
+const createTemplate = ({ filmInfo: { title = '', rating = '', duration = '', genre = [], imgSrc, description = '', alternativeTitle = '', ageRating = '', director = '', writers = [], actors = [], release = {} }, userDetails = {}, comments = null, clickedEmoji = null, showedEmojiName = null, comment = '', isFormDisabled = false, commentDeletingId = null }) => `
 <section class="film-details">
   <form class="film-details__inner" action="" method="get">
     <div class="film-details__top-container">
@@ -160,7 +161,7 @@ const createTemplate = ({ film_info: { title = '', rating = '', duration = '', g
 
       <section class="film-details__controls">
         <button type="button" class="film-details__control-button film-details__control-button--watchlist ${userDetails.watchlist ? 'film-details__control-button--active' : ''} " id="watchlist" name="watchlist">Add to watchlist</button>
-        <button type="button" class="film-details__control-button film-details__control-button--watched ${userDetails.already_watched ? 'film-details__control-button--active' : ''} " id="watched" name="watched">Already watched</button>
+        <button type="button" class="film-details__control-button film-details__control-button--watched ${userDetails.alreadyWatched ? 'film-details__control-button--active' : ''} " id="watched" name="watched">Already watched</button>
         <button type="button" class="film-details__control-button film-details__control-button--favorite ${userDetails.favorite ? 'film-details__control-button--active' : ''} " id="favorite" name="favorite">Add to favorites</button>
       </section>
     </div>
@@ -234,9 +235,9 @@ export default class PopupView extends AbstractStatefulView {
 
   setToggleControlHandler = (callback) => {
     this._callback.toggleControl = callback;
-    this.#getWatchlistElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'watchlist'));
-    this.#getWatchedElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'already_watched'));
-    this.#getFavoriteElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, 'favorite'));
+    this.#getWatchlistElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, FilterType.WATCHLIST));
+    this.#getWatchedElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, FilterType.HISTORY));
+    this.#getFavoriteElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, FilterType.FAVORITE));
   };
 
   #clickToggleControlHandler = (e, type) => {
@@ -275,7 +276,7 @@ export default class PopupView extends AbstractStatefulView {
 
   setSubmitAddCommentFormHandler = (callback) => {
     this._callback.submitAddCommentForm = callback;
-    document.addEventListener('keydown', this.#submitAddCommentFormHandler);
+    document.addEventListener('keydown', this.submitAddCommentFormHandler);
   };
 
   #submitAddCommentFormHandler = (e) => {
