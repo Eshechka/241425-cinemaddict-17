@@ -74,16 +74,16 @@ export default class PopupPresenter {
     });
 
     this.#popupComponent.setCloseElementClickHandler(() => {
-      this.destroyPopup();
       this.#popupContainer.removeEventListener('keydown', this.#closePopupByEsc);
+      this.destroyPopup();
     });
   };
 
   #closePopupByEsc = (e) => {
     if (e.key === 'Escape') {
       e.preventDefault();
-      this.destroyPopup();
       this.#popupContainer.removeEventListener('keydown', this.#closePopupByEsc);
+      this.destroyPopup();
     }
   };
 

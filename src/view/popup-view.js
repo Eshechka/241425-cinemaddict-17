@@ -276,7 +276,7 @@ export default class PopupView extends AbstractStatefulView {
 
   setSubmitAddCommentFormHandler = (callback) => {
     this._callback.submitAddCommentForm = callback;
-    document.addEventListener('keydown', this.submitAddCommentFormHandler);
+    document.addEventListener('keydown', this.#submitAddCommentFormHandler);
   };
 
   #submitAddCommentFormHandler = (e) => {
