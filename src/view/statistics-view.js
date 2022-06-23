@@ -15,5 +15,4 @@ export default class StatisticsView extends AbstractView {
   get template() {
     return createTemplate(this.#amountFilms);
   }
-
 }

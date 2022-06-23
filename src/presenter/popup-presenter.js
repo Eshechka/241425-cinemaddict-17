@@ -23,6 +23,49 @@ export default class PopupPresenter {
 
   getCardPopupData = () => ({ ...this.#cardInfo });
 
+  destroyPopup = () => {
+    // закрываем попап, очищаем this.#popupComponent
+    document.removeEventListener('keydown', this.#popupComponent.submitAddCommentFormHandler);
+    this.#popupContainer.removeEventListener('keydown', this.#closePopupByEsc);
+    remove(this.#popupComponent);
+    this.#popupComponent = null;
+    this.#popupContainer.classList.remove('hide-overflow');
+  };
+
+  updatePopupCardCommentsAfterAdd = (newComment) => {
+    delete newComment.filmId;
+    const newComments = [...this.#cardInfo.comments, newComment];
+    this.#cardInfo.comments = newComments;
+    this.#popupComponent.updateAfterAddComment(newComments);
+  };
+
+  updateFilmControlsAfterUpdate = (userDetails) => {
+    this.#cardInfo.userDetails = { ...userDetails };
+    this.#popupComponent.updateAfterUpdateFilm(userDetails);
+  };
+
+  updateCardCommentsAfterFailureDelete = () => {
+    this.#popupComponent.updateAfterFailureDeleteComment();
+  };
+
+  updateCardCommentsAfterDelete = (newComments) => {
+    this.#cardInfo.comments = newComments;
+    this.#popupComponent.updateAfterDeleteComment(newComments);
+  };
+
+  shakePopupAddFormComment = () => {
+    this.#popupComponent.shakeElement(this.#popupComponent.getNewCommentElement());
+  };
+
+  shakePopupControls = () => {
+    this.#popupComponent.shakeElement(this.#popupComponent.getControlsElement());
+  };
+
+  shakePopupDeletingComment = (commentId) => {
+    const commentElement = this.#popupComponent.getCommentElement(commentId);
+    this.#popupComponent.shakeElement(commentElement);
+  };
+
   #renderPopup = (isComments) => {
     if (this.#popupComponent) {
       this.destroyPopup();//попап уже был отрендерен, прежде чем отрисовывать новый, надо убрать предыдущий
@@ -86,48 +129,4 @@ export default class PopupPresenter {
       this.destroyPopup();
     }
   };
-
-  destroyPopup = () => {
-    // закрываем попап, очищаем this.#popupComponent
-    document.removeEventListener('keydown', this.#popupComponent.submitAddCommentFormHandler);
-    this.#popupContainer.removeEventListener('keydown', this.#closePopupByEsc);
-    remove(this.#popupComponent);
-    this.#popupComponent = null;
-    this.#popupContainer.classList.remove('hide-overflow');
-  };
-
-  shakePopupAddFormComment = () => {
-    this.#popupComponent.shakeElement(this.#popupComponent.getNewCommentElement());
-  };
-
-  shakePopupControls = () => {
-    this.#popupComponent.shakeElement(this.#popupComponent.getControlsElement());
-  };
-
-  shakePopupDeletingComment = (commentId) => {
-    const commentElement = this.#popupComponent.getCommentElement(commentId);
-    this.#popupComponent.shakeElement(commentElement);
-  };
-
-  updatePopupCardCommentsAfterAdd = (newComment) => {
-    delete newComment.filmId;
-    const newComments = [...this.#cardInfo.comments, newComment];
-    this.#cardInfo.comments = newComments;
-    this.#popupComponent.updateAfterAddComment(newComments);
-  };
-
-  updateFilmControlsAfterUpdate = (userDetails) => {
-    this.#cardInfo.userDetails = { ...userDetails };
-    this.#popupComponent.updateAfterUpdateFilm(userDetails);
-  };
-
-  updateCardCommentsAfterFailureDelete = () => {
-    this.#popupComponent.updateAfterFailureDeleteComment();
-  };
-
-  updateCardCommentsAfterDelete = (newComments) => {
-    this.#cardInfo.comments = newComments;
-    this.#popupComponent.updateAfterDeleteComment(newComments);
-  };
-
 }

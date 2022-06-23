@@ -59,30 +59,30 @@ const createTemplateNewComment = (commentAmount, clickedEmoji, showedEmojiName, 
 
   <div class="film-details__emoji-list">
     <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio"
-    id="emoji-smile" ${clickedEmoji === 'emoji-smile' ? 'checked' : ''}
+    id="emoji-smile" ${clickedEmoji === 'smile' ? 'checked' : ''}
     value="smile">
-    <label class="film-details__emoji-label" for="emoji-smile">
+    <label class="film-details__emoji-label" data-emoji="smile" for="emoji-smile">
       <img src="./images/emoji/smile.png" width="30" height="30" alt="emoji">
     </label>
 
     <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio"
-    id="emoji-sleeping" ${clickedEmoji === 'emoji-sleeping' ? 'checked' : ''}
+    id="emoji-sleeping" ${clickedEmoji === 'sleeping' ? 'checked' : ''}
     value="sleeping">
-    <label class="film-details__emoji-label" for="emoji-sleeping">
+    <label class="film-details__emoji-label" data-emoji="sleeping" for="emoji-sleeping">
       <img src="./images/emoji/sleeping.png" width="30" height="30" alt="emoji">
     </label>
 
     <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio"
-    id="emoji-puke"  ${clickedEmoji === 'emoji-puke' ? 'checked' : ''}
+    id="emoji-puke"  ${clickedEmoji === 'puke' ? 'checked' : ''}
     value="puke">
-    <label class="film-details__emoji-label" for="emoji-puke">
+    <label class="film-details__emoji-label" data-emoji="puke" for="emoji-puke">
       <img src="./images/emoji/puke.png" width="30" height="30" alt="emoji">
     </label>
 
     <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio"
-    id="emoji-angry" ${clickedEmoji === 'emoji-angry' ? 'checked' : ''}
+    id="emoji-angry" ${clickedEmoji === 'angry' ? 'checked' : ''}
     value="angry">
-    <label class="film-details__emoji-label" for="emoji-angry">
+    <label class="film-details__emoji-label" data-emoji="angry" for="emoji-angry">
       <img src="./images/emoji/angry.png" width="30" height="30" alt="emoji">
     </label>
   </div>
@@ -90,7 +90,7 @@ const createTemplateNewComment = (commentAmount, clickedEmoji, showedEmojiName, 
 </section>
 `;
 
-const createTemplate = ({ filmInfo: { title = '', rating = '', duration = '', genre = [], imgSrc, description = '', alternativeTitle = '', ageRating = '', director = '', writers = [], actors = [], release = {} }, userDetails = {}, comments = null, clickedEmoji = null, showedEmojiName = null, comment = '', isFormDisabled = false, commentDeletingId = null }) => `
+const createTemplate = ({ filmInfo: { title = '', rating = '', duration = '', genres = [], imgSrc, description = '', alternativeTitle = '', ageRating = '', director = '', writers = [], actors = [], release = {} }, userDetails = {}, comments = null, clickedEmoji = null, showedEmojiName = null, comment = '', isFormDisabled = false, commentDeletingId = null }) => `
 <section class="film-details">
   <form class="film-details__inner" action="" method="get">
     <div class="film-details__top-container">
@@ -146,10 +146,10 @@ const createTemplate = ({ filmInfo: { title = '', rating = '', duration = '', ge
               <td class="film-details__cell">${release.release_country ? release.release_country : ''}</td>
             </tr>
             <tr class="film-details__row">
-              <td class="film-details__term">${genre.length > 1 ? 'Genres' : 'Genre'}</td>
+              <td class="film-details__term">${genres.length > 1 ? 'Genres' : 'Genre'}</td>
               <td class="film-details__cell">
-              ${genre.map((genr) => `
-                <span class="film-details__genre">${genr}</span>
+              ${genres.map((genre) => `
+                <span class="film-details__genre">${genre}</span>
               `).join('')}
               </td>
             </tr>
@@ -180,18 +180,6 @@ const createTemplate = ({ filmInfo: { title = '', rating = '', duration = '', ge
 
 export default class PopupView extends AbstractStatefulView {
 
-  static initState = (film) => ({
-    ...film,
-    comment: '',
-    clickedEmoji: null,
-    showedEmojiName: null,
-    isCommentFocused: false,
-    scrollPos: 0,
-
-    isFormDisabled: false,
-    commentDeletingId: null,
-  });
-
   constructor(film = {}) {
     super();
     this._state = PopupView.initState(film);
@@ -205,32 +193,10 @@ export default class PopupView extends AbstractStatefulView {
     return createTemplate(this._state);
   }
 
-  #setInnerHandlers = () => {
-    this.#getEmojiListElement().addEventListener('click', this.#clickEmojiHandler);
-    this.#getInputCommentElement().addEventListener('input', this.#inputCommentHandler);
-  };
-
-  _restoreHandlers = () => {
-    this.#setScrollPage(this._state.scrollPos);
-    this.#setCommentFocus(this._state.isCommentFocused);
-
-    if (this._state.comments) {
-      this.#setInnerHandlers();
-      this.setClickDeleteHandler(this._callback.clickDelete);
-    }
-    this.setCloseElementClickHandler(this._callback.clickCloseElement);
-    this.setToggleControlHandler(this._callback.toggleControl);
-    this.setSubmitAddCommentFormHandler(this._callback.submitAddCommentForm);
-  };
-
+  // Основные методы класса
   setCloseElementClickHandler = (callback) => {
     this._callback.clickCloseElement = callback;
     this.#getCloseElement().addEventListener('click', this.#clickCloseElementHandler);
-  };
-
-  #clickCloseElementHandler = (e) => {
-    e.preventDefault();
-    this._callback.clickCloseElement();
   };
 
   setToggleControlHandler = (callback) => {
@@ -240,13 +206,6 @@ export default class PopupView extends AbstractStatefulView {
     this.#getFavoriteElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, FilterType.FAVORITE));
   };
 
-  #clickToggleControlHandler = (e, type) => {
-    e.preventDefault();
-    this._callback.toggleControl(e, type);
-
-    this.#setScrollPage(this._state.scrollPos);
-  };
-
   setClickDeleteHandler = (callback) => {
     this._callback.clickDelete = callback;
     if (this._state.comments) {
@@ -254,53 +213,9 @@ export default class PopupView extends AbstractStatefulView {
     }
   };
 
-  #clickDeleteHandler = (e) => {
-    e.preventDefault();
-
-    const commentElement = e.target.dataset.id ? e.target : e.target.closest('[data-id]');
-    if (commentElement) {
-      const changedCommentId = +commentElement.dataset.id;
-
-      this.#setScrollPage(this._state.scrollPos);
-
-      const deletedComment = [...this._state.comments].find((comment) => +comment.id === changedCommentId);
-      this._callback.clickDelete(e, { filmId: this._state.id, ...deletedComment });
-
-      this.updateElement({
-        commentDeletingId: deletedComment.id,
-      });
-    }
-
-  };
-
-
   setSubmitAddCommentFormHandler = (callback) => {
     this._callback.submitAddCommentForm = callback;
     document.addEventListener('keydown', this.submitAddCommentFormHandler);
-  };
-
-  submitAddCommentFormHandler = (e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-
-      e.preventDefault();
-
-      if (this._state.comment && this._state.showedEmojiName) {// если и эмоция и текст предоставлены
-
-        this.#setScrollPage(this._state.scrollPos);
-
-        const newComment = {
-          filmId: this._state.id,
-          text: this._state.comment,
-          emojiName: this._state.showedEmojiName,
-        };
-
-        this._callback.submitAddCommentForm(e, newComment);
-
-        this.updateElement({
-          isFormDisabled: !this._state.isFormDisabled,
-        });
-      }
-    }
   };
 
   updateAfterUpdateFilm = (userDetails) => {
@@ -333,37 +248,32 @@ export default class PopupView extends AbstractStatefulView {
     });
   };
 
+  shakeElement(element) {
+    element.classList.add(SHAKE_CLASS_NAME);
+    setTimeout(() => { element.classList.remove(SHAKE_CLASS_NAME); }, SHAKE_ANIMATION_TIMEOUT);
+  }
 
-  #clickEmojiHandler = (e) => {
-    e.preventDefault();
+  _restoreHandlers = () => {
+    this.#setScrollPage(this._state.scrollPos);
+    this.#setCommentFocus(this._state.isCommentFocused);
 
-    if (this._state.isFormDisabled) {
-      return;
+    if (this._state.comments) {
+      this.#setInnerHandlers();
+      this.setClickDeleteHandler(this._callback.clickDelete);
     }
-
-    let clickedEmojiElem = e.target.classList.contains('film-details__emoji-label') ? e.target.querySelector('img') : null;
-    if (!clickedEmojiElem && e.target.parentNode.classList.contains('film-details__emoji-label')) {
-      clickedEmojiElem = e.target;
-    }
-
-    // clickedEmojiElem - img
-    if (clickedEmojiElem) {
-      const clickedEmoji = clickedEmojiElem.parentNode.getAttribute('for');
-
-      this.updateElement({
-        clickedEmoji: clickedEmoji,
-        showedEmojiName: clickedEmoji.slice(6),
-        scrollPos: this.element.scrollTop,
-      });
-    }
+    this.setCloseElementClickHandler(this._callback.clickCloseElement);
+    this.setToggleControlHandler(this._callback.toggleControl);
+    this.setSubmitAddCommentFormHandler(this._callback.submitAddCommentForm);
   };
 
-  #inputCommentHandler = (e) => {
-    this.updateElement({
-      comment: e.target.value,
-      isCommentFocused: true,
-      scrollPos: this.element.scrollTop,
-    });
+  getCommentElement = (commentId) => this.element.querySelector(`[data-id='${commentId}']`);
+  getNewCommentElement = () => this.element.querySelector('.film-details__new-comment');
+  getControlsElement = () => this.element.querySelector('.film-details__controls');
+
+  // Основные методы класса: Приватные методы
+  #setInnerHandlers = () => {
+    this.#getEmojiListElement().addEventListener('click', this.#clickEmojiHandler);
+    this.#getInputCommentElement().addEventListener('input', this.#inputCommentHandler);
   };
 
   #setCommentFocus = (isFocused) => {
@@ -383,23 +293,114 @@ export default class PopupView extends AbstractStatefulView {
     this.element.scrollTo({ top: +scrollPos });
   };
 
-  shakeElement(element) {
-    element.classList.add(SHAKE_CLASS_NAME);
-    setTimeout(() => { element.classList.remove(SHAKE_CLASS_NAME); }, SHAKE_ANIMATION_TIMEOUT);
-  }
-
   #getCloseElement = () => this.element.querySelector('.film-details__close-btn');
-
   #getWatchlistElement = () => this.element.querySelector('.film-details__control-button--watchlist');
   #getWatchedElement = () => this.element.querySelector('.film-details__control-button--watched');
   #getFavoriteElement = () => this.element.querySelector('.film-details__control-button--favorite');
-
   #getEmojiListElement = () => this.element.querySelector('.film-details__emoji-list');
   #getInputCommentElement = () => this.element.querySelector('.film-details__comment-input');
-
   #getCommentListElement = () => this.element.querySelector('.film-details__comments-list');
-  getCommentElement = (commentId) => this.element.querySelector(`[data-id='${commentId}']`);
-  getNewCommentElement = () => this.element.querySelector('.film-details__new-comment');
-  getControlsElement = () => this.element.querySelector('.film-details__controls');
 
+  // Обработчики событий
+  submitAddCommentFormHandler = (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+
+      e.preventDefault();
+
+      if (this._state.comment && this._state.showedEmojiName) {// если и эмоция и текст предоставлены
+
+        this.#setScrollPage(this._state.scrollPos);
+
+        const newComment = {
+          filmId: this._state.id,
+          text: this._state.comment,
+          emojiName: this._state.showedEmojiName,
+        };
+
+        this._callback.submitAddCommentForm(e, newComment);
+
+        this.updateElement({
+          isFormDisabled: !this._state.isFormDisabled,
+        });
+      } else {
+        this.shakeElement(this.getNewCommentElement());
+      }
+    }
+  };
+
+  #clickCloseElementHandler = (e) => {
+    e.preventDefault();
+    this._callback.clickCloseElement();
+  };
+
+  #clickToggleControlHandler = (e, type) => {
+    e.preventDefault();
+    this._callback.toggleControl(e, type);
+
+    this.#setScrollPage(this._state.scrollPos);
+  };
+
+  #clickDeleteHandler = (e) => {
+    e.preventDefault();
+
+    const commentElement = e.target.dataset.id ? e.target : e.target.closest('[data-id]');
+    if (commentElement) {
+      const changedCommentId = +commentElement.dataset.id;
+
+      this.#setScrollPage(this._state.scrollPos);
+
+      const deletedComment = [...this._state.comments].find((comment) => +comment.id === changedCommentId);
+      this._callback.clickDelete(e, { filmId: this._state.id, ...deletedComment });
+
+      this.updateElement({
+        commentDeletingId: deletedComment.id,
+      });
+    }
+
+  };
+
+  #clickEmojiHandler = (e) => {
+    e.preventDefault();
+
+    if (this._state.isFormDisabled) {
+      return;
+    }
+
+    let clickedEmojiElem = e.target.classList.contains('film-details__emoji-label') ? e.target.querySelector('img') : null;
+    if (!clickedEmojiElem && e.target.parentNode.classList.contains('film-details__emoji-label')) {
+      clickedEmojiElem = e.target;
+    }
+
+    // clickedEmojiElem - img
+    if (clickedEmojiElem) {
+      const clickedEmoji = clickedEmojiElem.parentNode.dataset.emoji;
+
+      this.updateElement({
+        clickedEmoji: clickedEmoji,
+        showedEmojiName: clickedEmoji,
+        scrollPos: this.element.scrollTop,
+      });
+    }
+  };
+
+  #inputCommentHandler = (e) => {
+    this.updateElement({
+      comment: e.target.value,
+      isCommentFocused: true,
+      scrollPos: this.element.scrollTop,
+    });
+  };
+
+  // Статические методы
+  static initState = (film) => ({
+    ...film,
+    comment: '',
+    clickedEmoji: null,
+    showedEmojiName: null,
+    isCommentFocused: false,
+    scrollPos: 0,
+
+    isFormDisabled: false,
+    commentDeletingId: null,
+  });
 }

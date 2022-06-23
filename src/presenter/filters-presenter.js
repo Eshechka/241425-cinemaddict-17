@@ -24,16 +24,6 @@ export default class FiltersPresenter {
     this.#filmModel.addObserver(this.#handleModelEvent);
   }
 
-  init = () => {
-    // рендерим общий контейнер для всех списков фильмов
-    render(this.#mainNavigationComponent, this.#mainNavigationContainer);
-
-    this.#mainNavigationComponent.setClickHandler((_, type) => {
-      // вызываем метод, который вызовет метод модели filtersModel (с обновленными данными)
-      this.#handleViewAction(type);
-    });
-  };
-
   get filters() {
     const films = this.#filmModel.films;
     this.#currentFilter = this.#filterModel.filter;
@@ -45,6 +35,16 @@ export default class FiltersPresenter {
       'favorite': { text: 'Favorites', count: this.#countFilter(FilterType.FAVORITE, films) },
     };
   }
+
+  init = () => {
+    // рендерим общий контейнер для всех списков фильмов
+    render(this.#mainNavigationComponent, this.#mainNavigationContainer);
+
+    this.#mainNavigationComponent.setClickHandler((_, type) => {
+      // вызываем метод, который вызовет метод модели filtersModel (с обновленными данными)
+      this.#handleViewAction(type);
+    });
+  };
 
   #countFilter = (type = '', films = []) => {
     if (!type) {

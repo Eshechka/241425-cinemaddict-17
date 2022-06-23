@@ -20,5 +20,4 @@ export default class ShowMoreBtnView extends AbstractView {
     e.preventDefault();
     this._callback.click();
   };
-
 }

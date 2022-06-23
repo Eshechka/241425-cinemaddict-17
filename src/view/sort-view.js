@@ -31,16 +31,6 @@ export default class SortView extends AbstractView {
     this.element.addEventListener('click', this.#clickSortingHandler);
   };
 
-  #clickSortingHandler = (e) => {
-
-    if (e.target.tagName !== 'A' || !e.target.dataset.sortType) {
-      return;
-    }
-
-    e.preventDefault();
-    this._callback.clickSorting(e.target.dataset.sortType);
-  };
-
   setActiveSortingElement = (sortType) => {
     const sortBtns = this.element.querySelectorAll('.sort__button');
     sortBtns.forEach((btn) => {
@@ -49,5 +39,14 @@ export default class SortView extends AbstractView {
         btn.classList.add('sort__button--active');
       }
     });
+  };
+
+  #clickSortingHandler = (e) => {
+    if (e.target.tagName !== 'A' || !e.target.dataset.sortType) {
+      return;
+    }
+
+    e.preventDefault();
+    this._callback.clickSorting(e.target.dataset.sortType);
   };
 }

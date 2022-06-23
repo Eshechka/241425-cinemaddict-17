@@ -43,14 +43,13 @@ export default class MainNavigationView extends AbstractView {
     this.#getFavoritesFilterElement().addEventListener('click', (e) => this.#clickHandler(e, FilterType.FAVORITE));
   };
 
-  #clickHandler = (e, type) => {
-    e.preventDefault();
-    this._callback.click(e, type);
-  };
-
   #getAllFilterElement = () => this.element.querySelector('.main-navigation__item--all');
   #getWatchlistFilterElement = () => this.element.querySelector('.main-navigation__item--watchlist');
   #getHistoryFilterElement = () => this.element.querySelector('.main-navigation__item--alreadyWatched');
   #getFavoritesFilterElement = () => this.element.querySelector('.main-navigation__item--favorite');
 
+  #clickHandler = (e, type) => {
+    e.preventDefault();
+    this._callback.click(e, type);
+  };
 }

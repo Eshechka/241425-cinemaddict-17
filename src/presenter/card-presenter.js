@@ -66,19 +66,10 @@ export default class CardPresenter {
     });
   };
 
-  #renderCard = () => {
-    render(this.#cardComponent, this.#cardsContainer);
-  };
-
-  destroyCard = () => {
-    remove(this.#cardComponent);
-    this.#cardComponent = null;
-  };
-
   updateCardComments = (newComments) => {
 
-    const updatedComments = this.#cardInfo.comments.map((commentId, ndx) =>
-      ({ id: commentId, ...newComments[ndx] })
+    const updatedComments = this.#cardInfo.comments.map((commentId, index) =>
+      ({ id: commentId, ...newComments[index] })
     );
 
     this.#cardInfo.comments = updatedComments;
@@ -88,4 +79,12 @@ export default class CardPresenter {
     this.#cardComponent.shake(() => { });
   };
 
+  destroyCard = () => {
+    remove(this.#cardComponent);
+    this.#cardComponent = null;
+  };
+
+  #renderCard = () => {
+    render(this.#cardComponent, this.#cardsContainer);
+  };
 }

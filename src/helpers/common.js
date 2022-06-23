@@ -1,5 +1,35 @@
 import dayjs from 'dayjs';
 
+
+// CONSTANTS
+export const FilterType = {
+  ALL: 'all',
+  WATCHLIST: 'watchlist',
+  HISTORY: 'alreadyWatched',
+  FAVORITE: 'favorite',
+};
+
+export const SortType = {
+  DEFAULT: 'default',
+  DATE: 'date',
+  RATING: 'rating',
+};
+
+export const UserAction = {
+  UPDATE_FILM: 'UPDATE_FILM',
+  ADD_COMMENT: 'ADD_COMMENT',
+  DELETE_COMMENT: 'DELETE_COMMENT',
+};
+
+export const UpdateType = {
+  INIT: 'INIT',
+  GET_FILM_COMMENTS: 'GET_FILM_COMMENTS',
+  UPDATE_FILTER: 'UPDATE_FILTER',
+  UPDATE_FILM: 'UPDATE_FILM',
+  ADD_COMMENT: 'ADD_COMMENT',
+  DELETE_COMMENT: 'DELETE_COMMENT',
+};
+
 export const getRandomInteger = (a = 0, b = 1) => {
   const lower = Math.ceil(Math.min(a, b));
   const upper = Math.floor(Math.max(a, b));
@@ -34,32 +64,4 @@ export const sortDate = (filmA, filmB) => {
   return weight ?? dayjs(filmB.filmInfo.release.date).diff(dayjs(filmA.filmInfo.release.date));
 };
 
-// CONSTANTS
-export const FilterType = {
-  ALL: 'all',
-  WATCHLIST: 'watchlist',
-  HISTORY: 'alreadyWatched',
-  FAVORITE: 'favorite',
-};
-
-export const SortType = {
-  DEFAULT: 'default',
-  DATE: 'date',
-  RATING: 'rating',
-};
-
-export const UserAction = {
-  UPDATE_FILM: 'UPDATE_FILM',
-  ADD_COMMENT: 'ADD_COMMENT',
-  DELETE_COMMENT: 'DELETE_COMMENT',
-};
-
-export const UpdateType = {
-  INIT: 'INIT',
-  GET_FILM_COMMENTS: 'GET_FILM_COMMENTS',
-  UPDATE_FILTER: 'UPDATE_FILTER',
-  UPDATE_FILM: 'UPDATE_FILM',
-  ADD_COMMENT: 'ADD_COMMENT',
-  DELETE_COMMENT: 'DELETE_COMMENT',
-};
-
+export const countWatched = (films) => films.reduce((sum, film) => sum + film.userDetails.alreadyWatched, 0);

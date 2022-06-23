@@ -82,10 +82,6 @@ export default class FilmsPresenter {
     this.#commentsModel.addObserver(this.#handleModelEvent);
   }
 
-  init = () => {
-    this.#renderFilms();
-  };
-
   get films() {
     this.#filterType = this.#filterModel.filter;
 
@@ -113,7 +109,7 @@ export default class FilmsPresenter {
     }
     // только один фильм, возвращаем его
     if (topRatedFilms.length === 1) {
-      return [];
+      return topRatedFilms;
     }
     // у всех равный рейтинг, берем 2 случайных
     if (topRatedFilms[0].filmInfo.rating === topRatedFilms[topRatedFilms.length - 1].filmInfo.rating) {
@@ -138,7 +134,7 @@ export default class FilmsPresenter {
     }
     // только один фильм c комментариями, возвращаем его
     if (mostCommentedFilms.length === 1) {
-      return [];
+      return mostCommentedFilms;
     }
     // у всех равное число комментариев, берем 2 случайных фильма
     if (mostCommentedFilms[0].comments.length === mostCommentedFilms[mostCommentedFilms.length - 1].comments.length) {
@@ -150,6 +146,10 @@ export default class FilmsPresenter {
 
     return mostCommentedFilms.slice(0, 2);
   }
+
+  init = () => {
+    this.#renderFilms();
+  };
 
   #getFilteredFilms = (type = FilterType.ALL, films = []) => {
     if (type === FilterType.ALL) {
@@ -169,16 +169,16 @@ export default class FilmsPresenter {
       return;
     }
 
-    const ndx = this.#films.findIndex((film) => film.id === filmData.id);
+    const index = this.#films.findIndex((film) => film.id === filmData.id);
 
-    if (ndx === -1) {
+    if (index === -1) {
       return;
     }
 
     this.#films = [
-      ...this.#films.slice(0, ndx),
+      ...this.#films.slice(0, index),
       filmData,
-      ...this.#films.slice(ndx + 1),
+      ...this.#films.slice(index + 1),
     ];
   };
 
@@ -202,32 +202,6 @@ export default class FilmsPresenter {
     this.#renderFilmsComponent(this.#topRatedFilmsComponent, this.#cardPresenterTopRated, this.topRatedFilms, this.topRatedFilms.length);
 
     this.#renderFilmsComponent(this.#mostCommentedFilmsComponent, this.#cardPresenterMostCommented, this.mostCommentedFilms, this.mostCommentedFilms.length);
-  };
-
-  // рендерит компоненты списка фильмов
-  #renderFilmsComponent = (filmsListComponent, cardPresenterMap, films, amountFirstRender = 1, place = RenderPosition.BEFOREEND) => {
-    render(filmsListComponent, this.#filmsComponent.element, place);
-    if (films.length) {
-      if (this.#emptyFilmsComponent) {
-        remove(this.#emptyFilmsComponent);
-      }
-      // рендерим карточки фильмов
-      this.#renderCards(filmsListComponent.getFilmsListContainer(), films.slice(0, amountFirstRender), cardPresenterMap);
-    } else {
-      if (this.#emptyFilmsComponent) {
-        replace(this.#emptyFilmsComponent, filmsListComponent);
-      } else {
-        render(this.#emptyFilmsComponent, this.#filmsComponent.element, RenderPosition.AFTERBEGIN);
-      }
-    }
-  };
-
-  // принимает элемент (инстанс CardPresenter) в мапе и новые данные. Если элемент в мапе найден - обновляет его (заново инициализирует)
-  #rerenderMapElement = (mapElement, updatedCard) => {
-    if (!mapElement) {
-      return;
-    }
-    mapElement.init(updatedCard);
   };
 
   #renderCards = (container, cards = [], cardPresenterMap) => {
@@ -268,23 +242,42 @@ export default class FilmsPresenter {
 
   };
 
-  // колбек, передаваемый в #sortComponent, сортирует и перерисовывает фильмы по клику на контрол сортировки
-  #clickSorting = (type) => {
+  // рендерит компоненты списка фильмов
+  #renderFilmsComponent = (filmsListComponent, cardPresenterMap, films, amountFirstRender = 1, place = RenderPosition.BEFOREEND) => {
+    render(filmsListComponent, this.#filmsComponent.element, place);
+    if (films.length) {
+      if (this.#emptyFilmsComponent) {
+        remove(this.#emptyFilmsComponent);
+      }
+      // рендерим карточки фильмов
+      this.#renderCards(filmsListComponent.getFilmsListContainer(), films.slice(0, amountFirstRender), cardPresenterMap);
+    } else {
+      if (this.#emptyFilmsComponent) {
+        replace(this.#emptyFilmsComponent, filmsListComponent);
+      } else {
+        render(this.#emptyFilmsComponent, this.#filmsComponent.element, RenderPosition.AFTERBEGIN);
+      }
+    }
+  };
 
-    if (this.#sortingMode === type) {
+  #rerenderFilmComponents = (updatedCardData) => {
+    // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким filmId, обновляем его
+    [this.#cardPresenterAll, this.#cardPresenterTopRated, this.#cardPresenterMostCommented].forEach((presenterSet) => {
+      this.#rerenderMapElement(presenterSet.get(updatedCardData.id), updatedCardData);
+    });
+
+    this.#setFilms(updatedCardData);
+    // удаляем все презентеры карточек фильмов и очищаем мап
+    this.#clearFilmList(this.#cardPresenterMostCommented);
+    this.#renderFilmsComponent(this.#mostCommentedFilmsComponent, this.#cardPresenterMostCommented, this.mostCommentedFilms, this.mostCommentedFilms.length, RenderPosition.BEFOREEND);
+  };
+
+  // принимает элемент (инстанс CardPresenter) в мапе и новые данные. Если элемент в мапе найден - обновляет его (заново инициализирует)
+  #rerenderMapElement = (mapElement, updatedCard) => {
+    if (!mapElement) {
       return;
     }
-    // запоминаем тип сортировки
-    this.#sortingMode = type;
-
-    // подсвечиваем нажатый фильтр
-    this.#sortComponent.setActiveSortingElement(type);
-
-    // удаляем все презентеры карточек фильмов и очищаем мап
-    this.#clearFilmList(this.#cardPresenterAll, this.#showMoreAllFilmsBtnComponent);
-
-    this.#renderFilmsComponent(this.#allFilmsComponent, this.#cardPresenterAll, this.films, this.#renderedAllCardsCount, RenderPosition.AFTERBEGIN);
-    this.#renderShowMoreBtn(this.#showMoreAllFilmsBtnComponent, this.#allFilmsComponent.element, this.#allFilmsComponent.getFilmsListContainer(), this.films, this.#cardPresenterAll, this.#renderedAllCardsCount);
+    mapElement.init(updatedCard);
   };
 
   #clearFilmList = (mapPresenter, btnComponent = null) => {
@@ -302,6 +295,25 @@ export default class FilmsPresenter {
 
   #initPopup = (cardInfo, isComments) => {
     this.#popupComponent.init(cardInfo, isComments);
+  };
+
+  // колбек, передаваемый в #sortComponent, сортирует и перерисовывает фильмы по клику на контрол сортировки
+  #clickSorting = (type) => {
+
+    if (this.#sortingMode === type) {
+      return;
+    }
+    // запоминаем тип сортировки
+    this.#sortingMode = type;
+
+    // подсвечиваем нажатый фильтр
+    this.#sortComponent.setActiveSortingElement(type);
+
+    // удаляем все презентеры карточек фильмов и очищаем мап
+    this.#clearFilmList(this.#cardPresenterAll, this.#showMoreAllFilmsBtnComponent);
+
+    this.#renderFilmsComponent(this.#allFilmsComponent, this.#cardPresenterAll, this.films, this.#renderedAllCardsCount, RenderPosition.AFTERBEGIN);
+    this.#renderShowMoreBtn(this.#showMoreAllFilmsBtnComponent, this.#allFilmsComponent.element, this.#allFilmsComponent.getFilmsListContainer(), this.films, this.#cardPresenterAll, this.#renderedAllCardsCount);
   };
 
   #handleViewAction = async (typeAction, changed, from = null) => {
@@ -407,17 +419,4 @@ export default class FilmsPresenter {
         break;
     }
   };
-
-  #rerenderFilmComponents = (updatedCardData) => {
-    // если в мапе (cardPresenterAll, cardPresenterTopRated, cardPresenterMostCommented) есть элемент с таким filmId, обновляем его
-    [this.#cardPresenterAll, this.#cardPresenterTopRated, this.#cardPresenterMostCommented].forEach((presenterSet) => {
-      this.#rerenderMapElement(presenterSet.get(updatedCardData.id), updatedCardData);
-    });
-
-    this.#setFilms(updatedCardData);
-    // удаляем все презентеры карточек фильмов и очищаем мап
-    this.#clearFilmList(this.#cardPresenterMostCommented);
-    this.#renderFilmsComponent(this.#mostCommentedFilmsComponent, this.#cardPresenterMostCommented, this.mostCommentedFilms, this.mostCommentedFilms.length, RenderPosition.BEFOREEND);
-  };
-
 }
