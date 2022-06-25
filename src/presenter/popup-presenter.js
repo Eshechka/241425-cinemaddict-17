@@ -15,6 +15,10 @@ export default class PopupPresenter {
     this.#handleViewAction = handleViewAction;
   }
 
+  get component() {
+    return this.#popupComponent;
+  }
+
   init = (cardInfo, isComments = false) => {
     this.#cardInfo = cardInfo;
 
@@ -25,7 +29,7 @@ export default class PopupPresenter {
 
   destroyPopup = () => {
     // закрываем попап, очищаем this.#popupComponent
-    document.removeEventListener('keydown', this.#popupComponent.submitAddCommentFormHandler);
+    document.removeEventListener('keydown', this.#popupComponent.addCommentFormSubmitHandler);
     this.#popupContainer.removeEventListener('keydown', this.#closePopupByEsc);
     remove(this.#popupComponent);
     this.#popupComponent = null;
@@ -85,7 +89,7 @@ export default class PopupPresenter {
 
     this.#popupContainer.addEventListener('keydown', this.#closePopupByEsc);
 
-    this.#popupComponent.setToggleControlHandler((_, type) => {
+    this.#popupComponent.setToggleControlClickHandler((_, type) => {
       // обновляем данные
       const newUserDetails = { ...this.#cardInfo.userDetails };
 
@@ -108,11 +112,11 @@ export default class PopupPresenter {
       this.#handleViewAction(UserAction.UPDATE_FILM, newCardInfo, 'popup');
     });
 
-    this.#popupComponent.setSubmitAddCommentFormHandler((_, newComment) => {
+    this.#popupComponent.setAddCommentFormSubmitHandler((_, newComment) => {
       this.#handleViewAction(UserAction.ADD_COMMENT, newComment);
     });
 
-    this.#popupComponent.setClickDeleteHandler((_, comment) => {
+    this.#popupComponent.setDeleteClickHandler((_, comment) => {
       this.#handleViewAction(UserAction.DELETE_COMMENT, comment);
     });
 

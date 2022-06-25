@@ -186,7 +186,7 @@ export default class FilmsPresenter {
   #renderSorting = () => {
     render(this.#sortComponent, this.#filmsContainer);
     // добавим обработчик клика на компонент
-    this.#sortComponent.setClickSortingHandler(this.#clickSorting);
+    this.#sortComponent.setSortingClickHandler(this.#sortingClickHandler);
   };
 
   #renderFilms = () => {
@@ -299,7 +299,8 @@ export default class FilmsPresenter {
   };
 
   // колбек, передаваемый в #sortComponent, сортирует и перерисовывает фильмы по клику на контрол сортировки
-  #clickSorting = (type) => {
+  // на элементе сортировки произошел клик
+  #sortingClickHandler = (type) => {
 
     if (this.#sortingMode === type) {
       return;
@@ -390,7 +391,8 @@ export default class FilmsPresenter {
         this.#emptyFilmsComponent.setTitle(EMPTY_TITLES[data]);
         break;
       case UpdateType.UPDATE_FILM:
-        if (this.#updateFilmFrom === ActionFrom.POPUP) {
+        // если попап открыт и клик происходит по нему или по его карточке из списка, то обновляем его данные
+        if (this.#popupComponent.component && data.id === this.#popupComponent.getCardPopupData().id) {
           this.#popupComponent.updateFilmControlsAfterUpdate(data.userDetails);
         }
         this.#updateFilmFrom = null;

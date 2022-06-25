@@ -42,11 +42,11 @@ export default class FilmCardView extends AbstractView {
     this.element.addEventListener('click', this.#clickHandler);
   };
 
-  setToggleControlHandler = (callback) => {
-    this._callback.toggleControl = callback;
-    this.#getWatchlistElement().addEventListener('click', (evt) => this.#clickToggleControlHandler(evt, FilterType.WATCHLIST));
-    this.#getWatchedElement().addEventListener('click', (evt) => this.#clickToggleControlHandler(evt, FilterType.HISTORY));
-    this.#getFavoriteElement().addEventListener('click', (evt) => this.#clickToggleControlHandler(evt, FilterType.FAVORITE));
+  setToggleControlClickHandler = (callback) => {
+    this._callback.toggleControlClick = callback;
+    this.#getWatchlistElement().addEventListener('click', (evt) => this.#toggleControlClickHandler(evt, FilterType.WATCHLIST));
+    this.#getWatchedElement().addEventListener('click', (evt) => this.#toggleControlClickHandler(evt, FilterType.HISTORY));
+    this.#getFavoriteElement().addEventListener('click', (evt) => this.#toggleControlClickHandler(evt, FilterType.FAVORITE));
   };
 
   #getWatchlistElement = () => this.element.querySelector('.film-card__controls-item--add-to-watchlist');
@@ -61,8 +61,9 @@ export default class FilmCardView extends AbstractView {
     }
   };
 
-  #clickToggleControlHandler = (evt, type) => {
+  // на элементе переключателе (toggleControl) случился клик
+  #toggleControlClickHandler = (evt, type) => {
     evt.preventDefault();
-    this._callback.toggleControl(evt, type);
+    this._callback.toggleControlClick(evt, type);
   };
 }

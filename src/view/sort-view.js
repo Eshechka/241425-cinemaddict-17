@@ -26,9 +26,9 @@ export default class SortView extends AbstractView {
     return createTemplate();
   }
 
-  setClickSortingHandler = (callback) => {
-    this._callback.clickSorting = callback;
-    this.element.addEventListener('click', this.#clickSortingHandler);
+  setSortingClickHandler = (callback) => {
+    this._callback.sortingClick = callback;
+    this.element.addEventListener('click', this.#sortingClickHandler);
   };
 
   setActiveSortingElement = (sortType) => {
@@ -41,12 +41,13 @@ export default class SortView extends AbstractView {
     });
   };
 
-  #clickSortingHandler = (evt) => {
+  // на элементе сортировки случился клик
+  #sortingClickHandler = (evt) => {
     if (evt.target.tagName !== 'A' || !evt.target.dataset.sortType) {
       return;
     }
 
     evt.preventDefault();
-    this._callback.clickSorting(evt.target.dataset.sortType);
+    this._callback.sortingClick(evt.target.dataset.sortType);
   };
 }

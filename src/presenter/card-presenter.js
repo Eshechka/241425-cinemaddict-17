@@ -43,7 +43,7 @@ export default class CardPresenter {
       this.#initPopup(this.#cardInfo, false);// тут еще нет полноценных комментариев, но надо отрендерить попап, поэтому отправляем без них
     });
 
-    this.#cardComponent.setToggleControlHandler((_, type) => {
+    this.#cardComponent.setToggleControlClickHandler((_, type) => {
       // обновляем данные
       const newUserDetails = { ...this.#cardInfo.userDetails };
 

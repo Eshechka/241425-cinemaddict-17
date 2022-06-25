@@ -193,27 +193,27 @@ export default class PopupView extends AbstractStatefulView {
 
   // Основные методы класса
   setCloseElementClickHandler = (callback) => {
-    this._callback.clickCloseElement = callback;
-    this.#getCloseElement().addEventListener('click', this.#clickCloseElementHandler);
+    this._callback.closeElementClick = callback;
+    this.#getCloseElement().addEventListener('click', this.#closeElementClickHandler);
   };
 
-  setToggleControlHandler = (callback) => {
-    this._callback.toggleControl = callback;
-    this.#getWatchlistElement().addEventListener('click', (evt) => this.#clickToggleControlHandler(evt, FilterType.WATCHLIST));
-    this.#getWatchedElement().addEventListener('click', (evt) => this.#clickToggleControlHandler(evt, FilterType.HISTORY));
-    this.#getFavoriteElement().addEventListener('click', (evt) => this.#clickToggleControlHandler(evt, FilterType.FAVORITE));
+  setToggleControlClickHandler = (callback) => {
+    this._callback.toggleControlClick = callback;
+    this.#getWatchlistElement().addEventListener('click', (evt) => this.#toggleControlClickHandler(evt, FilterType.WATCHLIST));
+    this.#getWatchedElement().addEventListener('click', (evt) => this.#toggleControlClickHandler(evt, FilterType.HISTORY));
+    this.#getFavoriteElement().addEventListener('click', (evt) => this.#toggleControlClickHandler(evt, FilterType.FAVORITE));
   };
 
-  setClickDeleteHandler = (callback) => {
-    this._callback.clickDelete = callback;
+  setDeleteClickHandler = (callback) => {
+    this._callback.deleteClick = callback;
     if (this._state.comments) {
-      this.#getCommentListElement().addEventListener('click', this.#clickDeleteHandler);
+      this.#getCommentListElement().addEventListener('click', this.#deleteClickHandler);
     }
   };
 
-  setSubmitAddCommentFormHandler = (callback) => {
-    this._callback.submitAddCommentForm = callback;
-    document.addEventListener('keydown', this.submitAddCommentFormHandler);
+  setAddCommentFormSubmitHandler = (callback) => {
+    this._callback.addCommentFormSubmit = callback;
+    document.addEventListener('keydown', this.addCommentFormSubmitHandler);
   };
 
   updateAfterUpdateFilm = (userDetails) => {
@@ -257,11 +257,11 @@ export default class PopupView extends AbstractStatefulView {
 
     if (this._state.comments) {
       this.#setInnerHandlers();
-      this.setClickDeleteHandler(this._callback.clickDelete);
+      this.setDeleteClickHandler(this._callback.deleteClick);
     }
-    this.setCloseElementClickHandler(this._callback.clickCloseElement);
-    this.setToggleControlHandler(this._callback.toggleControl);
-    this.setSubmitAddCommentFormHandler(this._callback.submitAddCommentForm);
+    this.setCloseElementClickHandler(this._callback.closeElementClick);
+    this.setToggleControlClickHandler(this._callback.toggleControlClick);
+    this.setAddCommentFormSubmitHandler(this._callback.addCommentFormSubmit);
   };
 
   getCommentElement = (commentId) => this.element.querySelector(`[data-id='${commentId}']`);
@@ -270,8 +270,8 @@ export default class PopupView extends AbstractStatefulView {
 
   // Основные методы класса: Приватные методы
   #setInnerHandlers = () => {
-    this.#getEmojiListElement().addEventListener('click', this.#clickEmojiHandler);
-    this.#getInputCommentElement().addEventListener('input', this.#inputCommentHandler);
+    this.#getEmojiListElement().addEventListener('click', this.#emojiClickHandler);
+    this.#getInputCommentElement().addEventListener('input', this.#commentInputHandler);
   };
 
   #setCommentFocus = (isFocused) => {
@@ -300,7 +300,8 @@ export default class PopupView extends AbstractStatefulView {
   #getCommentListElement = () => this.element.querySelector('.film-details__comments-list');
 
   // Обработчики событий
-  submitAddCommentFormHandler = (evt) => {
+  // на элементе форма добавления комментария случился клик
+  addCommentFormSubmitHandler = (evt) => {
     if (evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
 
       evt.preventDefault();
@@ -315,7 +316,7 @@ export default class PopupView extends AbstractStatefulView {
           emojiName: this._state.showedEmojiName,
         };
 
-        this._callback.submitAddCommentForm(evt, newComment);
+        this._callback.addCommentFormSubmit(evt, newComment);
 
         this.updateElement({
           isFormDisabled: !this._state.isFormDisabled,
@@ -326,19 +327,22 @@ export default class PopupView extends AbstractStatefulView {
     }
   };
 
-  #clickCloseElementHandler = (evt) => {
+  // на элементе закрытия элемента случился клик
+  #closeElementClickHandler = (evt) => {
     evt.preventDefault();
-    this._callback.clickCloseElement();
+    this._callback.closeElementClick();
   };
 
-  #clickToggleControlHandler = (evt, type) => {
+  // на элементе переключатель (toggleControl) случился клик
+  #toggleControlClickHandler = (evt, type) => {
     evt.preventDefault();
-    this._callback.toggleControl(evt, type);
+    this._callback.toggleControlClick(evt, type);
 
     this.#setScrollPage(this._state.scrollPos);
   };
 
-  #clickDeleteHandler = (evt) => {
+  // на элементе удаления случился клик
+  #deleteClickHandler = (evt) => {
     evt.preventDefault();
 
     const commentElement = evt.target.dataset.id ? evt.target : evt.target.closest('[data-id]');
@@ -348,7 +352,7 @@ export default class PopupView extends AbstractStatefulView {
       this.#setScrollPage(this._state.scrollPos);
 
       const deletedComment = [...this._state.comments].find((comment) => +comment.id === changedCommentId);
-      this._callback.clickDelete(evt, { filmId: this._state.id, ...deletedComment });
+      this._callback.deleteClick(evt, { filmId: this._state.id, ...deletedComment });
 
       this.updateElement({
         commentDeletingId: deletedComment.id,
@@ -357,7 +361,8 @@ export default class PopupView extends AbstractStatefulView {
 
   };
 
-  #clickEmojiHandler = (evt) => {
+  // на элементе эмоджи случился клик
+  #emojiClickHandler = (evt) => {
     evt.preventDefault();
 
     if (this._state.isFormDisabled) {
@@ -381,7 +386,8 @@ export default class PopupView extends AbstractStatefulView {
     }
   };
 
-  #inputCommentHandler = (evt) => {
+  // на элементе комментария случился инпут (ввод)
+  #commentInputHandler = (evt) => {
     this.updateElement({
       comment: evt.target.value,
       isCommentFocused: true,
