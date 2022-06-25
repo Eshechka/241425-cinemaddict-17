@@ -1,24 +1,24 @@
 import { render, replace } from '../framework/render.js';
-
-import TitleView from '../view/title-view.js';
-import StatisticsView from '../view/statistics-view.js';
+import { countWatched, UpdateType } from '../helpers/common.js';
 
 import FilmModel from '../model/film-model.js';
 import CommentModel from '../model/comment-model.js';
 import FiltertModel from '../model/filter-model.js';
 
+import TitleView from '../view/title-view.js';
+import StatisticsView from '../view/statistics-view.js';
+
 import FilmsPresenter from './films-presenter.js';
 import FiltersPresenter from './filters-presenter.js';
+
+import FilmsApiService from '../films-api-service.js';
+
+const AUTHORIZATION = 'Basic li_du_sha_739';
+const END_POINT = 'https://17.ecmascript.pages.academy/cinemaddict';
 
 const siteHeaderElement = document.querySelector('.header');
 const siteMainElement = document.querySelector('.main');
 const siteFooterStatisticsElement = document.querySelector('.footer__statistics');
-
-import { FilmsApiService } from '../films-api-service.js';
-import { countWatched, UpdateType } from '../helpers/common.js';
-
-const AUTHORIZATION = 'Basic li_du_sha_739';
-const END_POINT = 'https://17.ecmascript.pages.academy/cinemaddict';
 
 export default class MainPresenter {
   #filmsModel = new FilmModel(new FilmsApiService(END_POINT, AUTHORIZATION));

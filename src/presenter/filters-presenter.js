@@ -3,7 +3,6 @@ import { FilterType, UpdateType } from '../helpers/common.js';
 
 import MainNavigationView from '../view/main-navigation-view.js';
 
-
 export default class FiltersPresenter {
   #filterModel = null;
   #filmModel = null;

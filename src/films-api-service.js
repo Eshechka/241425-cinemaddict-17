@@ -7,7 +7,7 @@ const Method = {
   DELETE: 'DELETE',
 };
 
-export class FilmsApiService extends ApiService {
+export default class FilmsApiService extends ApiService {
   get films() {
     return this._load({ url: 'movies' })
       .then(ApiService.parseResponse);

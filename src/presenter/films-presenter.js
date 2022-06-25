@@ -12,7 +12,8 @@ import CardPresenter from './card-presenter.js';
 import SortView from '../view/sort-view.js';
 import PopupPresenter from './popup-presenter.js';
 
-const FILMS_AMOUNT = 5;
+const FILMS_IN_ROW_AMOUNT = 5;
+const MAX_EXTRA_FILMS_AMOUNT = 2;
 const EMPTY_TITLES = {
   'all': 'There are no movies in our database',
   'watchlist': 'There are no movies to watch now',
@@ -58,7 +59,7 @@ export default class FilmsPresenter {
   #cardPresenterTopRated = new Map();
   #cardPresenterMostCommented = new Map();
 
-  #renderedAllCardsCount = FILMS_AMOUNT;
+  #renderedAllCardsCount = FILMS_IN_ROW_AMOUNT;
 
   constructor(filmsContainer, filmsModel, commentsModel, filterModel) {
     this.#filmsContainer = filmsContainer;
@@ -119,7 +120,7 @@ export default class FilmsPresenter {
       ];
     }
 
-    return topRatedFilms.slice(0, 2);
+    return topRatedFilms.slice(0, MAX_EXTRA_FILMS_AMOUNT);
   }
 
   get mostCommentedFilms() {
@@ -144,7 +145,7 @@ export default class FilmsPresenter {
       ];
     }
 
-    return mostCommentedFilms.slice(0, 2);
+    return mostCommentedFilms.slice(0, MAX_EXTRA_FILMS_AMOUNT);
   }
 
   init = () => {
@@ -328,7 +329,7 @@ export default class FilmsPresenter {
           if (from === ActionFrom.CARD) {
             [this.#cardPresenterAll, this.#cardPresenterTopRated, this.#cardPresenterMostCommented].forEach((presenterSet) => {
               if (presenterSet.has(changed.id)) {
-                presenterSet.get(changed.id).cardComponentShake();
+                presenterSet.get(changed.id).shakeCardComponent();
               }
             });
           } else if (from === ActionFrom.POPUP) {

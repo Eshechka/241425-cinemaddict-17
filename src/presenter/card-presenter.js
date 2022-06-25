@@ -75,7 +75,7 @@ export default class CardPresenter {
     this.#cardInfo.comments = updatedComments;
   };
 
-  cardComponentShake = () => {
+  shakeCardComponent = () => {
     this.#cardComponent.shake(() => { });
   };
 

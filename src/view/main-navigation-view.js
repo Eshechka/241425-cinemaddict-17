@@ -15,9 +15,9 @@ const createTemplate = (filterFilms, currentFilter) => {
     .join('');
 
   return `
-    <nav class="main-navigation">
-      ${filterItemsTemplate}
-    </nav>
+  <nav class="main-navigation">
+    ${filterItemsTemplate}
+  </nav>
   `;
 };
 
@@ -37,10 +37,10 @@ export default class MainNavigationView extends AbstractView {
 
   setClickHandler = (callback) => {
     this._callback.click = callback;
-    this.#getAllFilterElement().addEventListener('click', (e) => this.#clickHandler(e, FilterType.ALL));
-    this.#getWatchlistFilterElement().addEventListener('click', (e) => this.#clickHandler(e, FilterType.WATCHLIST));
-    this.#getHistoryFilterElement().addEventListener('click', (e) => this.#clickHandler(e, FilterType.HISTORY));
-    this.#getFavoritesFilterElement().addEventListener('click', (e) => this.#clickHandler(e, FilterType.FAVORITE));
+    this.#getAllFilterElement().addEventListener('click', (evt) => this.#clickHandler(evt, FilterType.ALL));
+    this.#getWatchlistFilterElement().addEventListener('click', (evt) => this.#clickHandler(evt, FilterType.WATCHLIST));
+    this.#getHistoryFilterElement().addEventListener('click', (evt) => this.#clickHandler(evt, FilterType.HISTORY));
+    this.#getFavoritesFilterElement().addEventListener('click', (evt) => this.#clickHandler(evt, FilterType.FAVORITE));
   };
 
   #getAllFilterElement = () => this.element.querySelector('.main-navigation__item--all');
@@ -48,8 +48,8 @@ export default class MainNavigationView extends AbstractView {
   #getHistoryFilterElement = () => this.element.querySelector('.main-navigation__item--alreadyWatched');
   #getFavoritesFilterElement = () => this.element.querySelector('.main-navigation__item--favorite');
 
-  #clickHandler = (e, type) => {
-    e.preventDefault();
-    this._callback.click(e, type);
+  #clickHandler = (evt, type) => {
+    evt.preventDefault();
+    this._callback.click(evt, type);
   };
 }

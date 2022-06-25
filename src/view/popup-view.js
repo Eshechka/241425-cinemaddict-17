@@ -6,7 +6,6 @@ import he from 'he';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { FilterType } from '../helpers/common.js';
 
-
 const SHAKE_CLASS_NAME = 'shake';
 const SHAKE_ANIMATION_TIMEOUT = 600;
 
@@ -24,7 +23,6 @@ const insertEmojiImg = (imgSrc) => {
 
   return `<img src="${imgSrc}" width="100%" height="100%" alt="clicked emoji"/>`;
 };
-
 
 const createTemplateCommentList = ({ id, emojiName, text, author, date }, isCommentDeleting) => `
   <li class="film-details__comment" data-id=${id}>
@@ -176,7 +174,7 @@ const createTemplate = ({ filmInfo: { title = '', rating = '', duration = '', ge
     </div>
   </form>
 </section>
-  `;
+`;
 
 export default class PopupView extends AbstractStatefulView {
 
@@ -201,9 +199,9 @@ export default class PopupView extends AbstractStatefulView {
 
   setToggleControlHandler = (callback) => {
     this._callback.toggleControl = callback;
-    this.#getWatchlistElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, FilterType.WATCHLIST));
-    this.#getWatchedElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, FilterType.HISTORY));
-    this.#getFavoriteElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, FilterType.FAVORITE));
+    this.#getWatchlistElement().addEventListener('click', (evt) => this.#clickToggleControlHandler(evt, FilterType.WATCHLIST));
+    this.#getWatchedElement().addEventListener('click', (evt) => this.#clickToggleControlHandler(evt, FilterType.HISTORY));
+    this.#getFavoriteElement().addEventListener('click', (evt) => this.#clickToggleControlHandler(evt, FilterType.FAVORITE));
   };
 
   setClickDeleteHandler = (callback) => {
@@ -302,10 +300,10 @@ export default class PopupView extends AbstractStatefulView {
   #getCommentListElement = () => this.element.querySelector('.film-details__comments-list');
 
   // Обработчики событий
-  submitAddCommentFormHandler = (e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+  submitAddCommentFormHandler = (evt) => {
+    if (evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
 
-      e.preventDefault();
+      evt.preventDefault();
 
       if (this._state.comment && this._state.showedEmojiName) {// если и эмоция и текст предоставлены
 
@@ -317,7 +315,7 @@ export default class PopupView extends AbstractStatefulView {
           emojiName: this._state.showedEmojiName,
         };
 
-        this._callback.submitAddCommentForm(e, newComment);
+        this._callback.submitAddCommentForm(evt, newComment);
 
         this.updateElement({
           isFormDisabled: !this._state.isFormDisabled,
@@ -328,29 +326,29 @@ export default class PopupView extends AbstractStatefulView {
     }
   };
 
-  #clickCloseElementHandler = (e) => {
-    e.preventDefault();
+  #clickCloseElementHandler = (evt) => {
+    evt.preventDefault();
     this._callback.clickCloseElement();
   };
 
-  #clickToggleControlHandler = (e, type) => {
-    e.preventDefault();
-    this._callback.toggleControl(e, type);
+  #clickToggleControlHandler = (evt, type) => {
+    evt.preventDefault();
+    this._callback.toggleControl(evt, type);
 
     this.#setScrollPage(this._state.scrollPos);
   };
 
-  #clickDeleteHandler = (e) => {
-    e.preventDefault();
+  #clickDeleteHandler = (evt) => {
+    evt.preventDefault();
 
-    const commentElement = e.target.dataset.id ? e.target : e.target.closest('[data-id]');
+    const commentElement = evt.target.dataset.id ? evt.target : evt.target.closest('[data-id]');
     if (commentElement) {
       const changedCommentId = +commentElement.dataset.id;
 
       this.#setScrollPage(this._state.scrollPos);
 
       const deletedComment = [...this._state.comments].find((comment) => +comment.id === changedCommentId);
-      this._callback.clickDelete(e, { filmId: this._state.id, ...deletedComment });
+      this._callback.clickDelete(evt, { filmId: this._state.id, ...deletedComment });
 
       this.updateElement({
         commentDeletingId: deletedComment.id,
@@ -359,16 +357,16 @@ export default class PopupView extends AbstractStatefulView {
 
   };
 
-  #clickEmojiHandler = (e) => {
-    e.preventDefault();
+  #clickEmojiHandler = (evt) => {
+    evt.preventDefault();
 
     if (this._state.isFormDisabled) {
       return;
     }
 
-    let clickedEmojiElem = e.target.classList.contains('film-details__emoji-label') ? e.target.querySelector('img') : null;
-    if (!clickedEmojiElem && e.target.parentNode.classList.contains('film-details__emoji-label')) {
-      clickedEmojiElem = e.target;
+    let clickedEmojiElem = evt.target.classList.contains('film-details__emoji-label') ? evt.target.querySelector('img') : null;
+    if (!clickedEmojiElem && evt.target.parentNode.classList.contains('film-details__emoji-label')) {
+      clickedEmojiElem = evt.target;
     }
 
     // clickedEmojiElem - img
@@ -383,9 +381,9 @@ export default class PopupView extends AbstractStatefulView {
     }
   };
 
-  #inputCommentHandler = (e) => {
+  #inputCommentHandler = (evt) => {
     this.updateElement({
-      comment: e.target.value,
+      comment: evt.target.value,
       isCommentFocused: true,
       scrollPos: this.element.scrollTop,
     });

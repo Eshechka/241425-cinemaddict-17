@@ -3,7 +3,6 @@ import dayjs from 'dayjs';
 import AbstractView from '../framework/view/abstract-view.js';
 import { FilterType } from '../helpers/common.js';
 
-
 const createTemplate = ({ filmInfo: { title = '', rating = '', release = {}, duration = '', genres = [], imgSrc = '', description = '' }, userDetails = {}, comments = [] }) => `
 <article class="film-card">
   <a class="film-card__link">
@@ -45,9 +44,9 @@ export default class FilmCardView extends AbstractView {
 
   setToggleControlHandler = (callback) => {
     this._callback.toggleControl = callback;
-    this.#getWatchlistElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, FilterType.WATCHLIST));
-    this.#getWatchedElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, FilterType.HISTORY));
-    this.#getFavoriteElement().addEventListener('click', (e) => this.#clickToggleControlHandler(e, FilterType.FAVORITE));
+    this.#getWatchlistElement().addEventListener('click', (evt) => this.#clickToggleControlHandler(evt, FilterType.WATCHLIST));
+    this.#getWatchedElement().addEventListener('click', (evt) => this.#clickToggleControlHandler(evt, FilterType.HISTORY));
+    this.#getFavoriteElement().addEventListener('click', (evt) => this.#clickToggleControlHandler(evt, FilterType.FAVORITE));
   };
 
   #getWatchlistElement = () => this.element.querySelector('.film-card__controls-item--add-to-watchlist');
@@ -55,15 +54,15 @@ export default class FilmCardView extends AbstractView {
   #getFavoriteElement = () => this.element.querySelector('.film-card__controls-item--favorite');
   #getControlsClass = () => 'film-card__controls-item';
 
-  #clickHandler = (e) => {
-    e.preventDefault();
-    if (!e.target.classList.contains(this.#getControlsClass())) {
+  #clickHandler = (evt) => {
+    evt.preventDefault();
+    if (!evt.target.classList.contains(this.#getControlsClass())) {
       this._callback.click();
     }
   };
 
-  #clickToggleControlHandler = (e, type) => {
-    e.preventDefault();
-    this._callback.toggleControl(e, type);
+  #clickToggleControlHandler = (evt, type) => {
+    evt.preventDefault();
+    this._callback.toggleControl(evt, type);
   };
 }

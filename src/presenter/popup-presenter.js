@@ -122,9 +122,9 @@ export default class PopupPresenter {
     });
   };
 
-  #closePopupByEsc = (e) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
+  #closePopupByEsc = (evt) => {
+    if (evt.key === 'Escape') {
+      evt.preventDefault();
       this.#popupContainer.removeEventListener('keydown', this.#closePopupByEsc);
       this.destroyPopup();
     }

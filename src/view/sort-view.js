@@ -41,12 +41,12 @@ export default class SortView extends AbstractView {
     });
   };
 
-  #clickSortingHandler = (e) => {
-    if (e.target.tagName !== 'A' || !e.target.dataset.sortType) {
+  #clickSortingHandler = (evt) => {
+    if (evt.target.tagName !== 'A' || !evt.target.dataset.sortType) {
       return;
     }
 
-    e.preventDefault();
-    this._callback.clickSorting(e.target.dataset.sortType);
+    evt.preventDefault();
+    this._callback.clickSorting(evt.target.dataset.sortType);
   };
 }
